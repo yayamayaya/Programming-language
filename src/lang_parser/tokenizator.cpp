@@ -28,7 +28,7 @@ int tokenize(token_t **tokens, const char *file_loc)
     for (int pos = 0; pos < file_size;)
     {
         token_arr[token_number] = detect_token(buff, &pos);
-        if ((token_arr[token_number].data_type == STRING) && (token_arr[token_number].data.string == NULL))
+        if ((token_arr[token_number].data_type == YET_TO_DET) && (token_arr[token_number].data.string == NULL))
         {
             LOG(">>> string has NULL pointer in tokens%40s\n", "[error]");
             free(buff);
@@ -37,16 +37,19 @@ int tokenize(token_t **tokens, const char *file_loc)
         }
         token_number++;
         if (token_number == token_arr_size)
-            token_realloc(token_arr, token_arr_size *= 2);
+            token_arr = token_realloc(token_arr, token_arr_size *= 2);
         
     }
     LOG("> all tokens were found, token number is: %d\n", token_number);
+    token_number++;
 
-    token_realloc(token_arr, token_number);
+    token_arr =  token_realloc(token_arr, token_number);
+    token_arr[token_number - 1].data_type = $;
     *tokens = token_arr;
 
     LOG(">> tokenizator worked successfull, token array pointer is: %p\n", *tokens);
     PRINT_TOKENS();
+    free(buff);
 
     return 0;
 }
@@ -85,13 +88,13 @@ token_t detect_token(char *buff, int *pos)
         LOG("> number found: %lf\n", number_holder);
         (*pos) += n;
         token.data.number = number_holder;
-        token.data_type = NUMBER;
+        token.data_type = NUM;
         LOG("> current pos: %d, the rest is: %s\n", *pos, buff + *pos);
         return token;
     }
 
     for (int i = 0; i < COMMANDS_NUMBER; i++)
-        if (!strncmp(buff + *pos, commands[i].cmd_name, strlen(commands[i].cmd_name)))
+        if (!strncmp(buff + *pos, commands[i].cmd_name, commands[i].cmd_length))
         {
             LOG("> command %s found: %d\n", commands[i].cmd_name, commands[i].cmd);
             token.data.command = commands[i].cmd;
@@ -103,8 +106,14 @@ token_t detect_token(char *buff, int *pos)
         }
 
     //char str[] = {0};
-    sscanf(buff + *pos, "%*s%n", &n);
+    sscanf(buff + *pos, "%*[a-zA-Z_]%n", &n);
     LOG("> scanf founded a word with length: %d\n\n\n", n);
+    if (!n)
+    {
+        LOG(">>> sscanf didn't read symbol: %d, returning empty token.%40s\n", buff[*pos], "[error]");
+        (*pos)++;
+        return token;
+    }
 
     char *string = (char *)calloc(n + 1, sizeof(char));
     if (!string)
@@ -120,6 +129,13 @@ token_t detect_token(char *buff, int *pos)
     return token;
 }
 
+void free_tok_strings(token_t *tokens)
+{
+    for (int i = 0; (tokens + i)->data_type != $; i++)
+        if (tokens[i].data_type == YET_TO_DET)
+            free((void *)((tokens + i)->data.string));
+}
+
 void token_dump(FILE* out, token_t *tokens, int token_num)
 {
     fprintf(out, "-------------TOKEN DUMP---------------\n");
@@ -129,17 +145,21 @@ void token_dump(FILE* out, token_t *tokens, int token_num)
         fprintf(out, "> DATA:           ");
         switch (tokens[i].data_type)
         {
-        case NUMBER:
-            fprintf(out, "%lf\n", tokens[i].data.number);
-            fprintf(out, "> DATA TYPE:      NUMBER\n");
+        case NUM:
+            fprintf(out, "%.2lf\n", tokens[i].data.number);
+            fprintf(out, "> DATA TYPE:      NUM\n");
             break;
         case COMMAND:
-            fprintf(out, "%d\n", tokens[i].data.command);
+            fprintf(out, "%#04x\n", tokens[i].data.command);
             fprintf(out, "> DATA TYPE:      COMMAND\n");
             break;
         case YET_TO_DET:
             fprintf(out, "%s\n", tokens[i].data.string);
             fprintf(out, "> DATA TYPE:      YET TO DETERMINE\n");
+            break;
+        case $:
+            fprintf(out, "$\n");
+            fprintf(out, "> tokens ended\n");
             break;
         default:
             LOG(">>> fatal error: couldnt detect token type%40s\n", "[error]");
