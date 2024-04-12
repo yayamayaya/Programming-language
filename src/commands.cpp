@@ -1,25 +1,5 @@
 #include "include/commands.h"
 
-enum COMMANDS
-{
-    E,
-    LOG_E,
-    LOG_NE,
-    LOG_A,
-    LOG_AE,
-    LOG_B,
-    LOG_BE,
-
-    RET,
-
-
-    STR_END,
-    OP_BR,
-    CL_BR,
-    OP_F_BR,
-    CL_F_BR,
-};
-
 command_t commands[COMMANDS_NUMBER] = 
 {
     {E, "=", 1},
@@ -35,6 +15,14 @@ command_t commands[COMMANDS_NUMBER] =
     {OP_F_BR, "{", 1},
     {CL_F_BR, "}", 1},
     {RET, "sygeide", 7},
+    {PLUS, "+", 1},
+    {MINUS, "-", 1},
+    {STAR, "*", 1},
+    {SLASH, "/", 1},
+    {POW, "^", 1},
+    {ZAP, ",", 1},
+    {PTR_VAL, "Pavlodar,brat", 13},
+    {INCL, "include", 7},
 
 
 
