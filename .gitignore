@@ -1,3 +1,5 @@
 bin
 logs
 tests
+syntax_tree.png
+graph_creator/graphcode.txt
