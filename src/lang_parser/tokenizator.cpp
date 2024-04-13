@@ -77,7 +77,7 @@ token_t detect_token(char *buff, int *pos)
     while (isspace(buff[*pos]))
     {
         (*pos)++;
-        LOG("> current pos: %d, the rest is: %s\n", *pos, buff + *pos);
+        LOG("> current pos: %d\n", *pos);
     }
 
     double number_holder = 0;
@@ -89,7 +89,7 @@ token_t detect_token(char *buff, int *pos)
         (*pos) += n;
         token.data.number = number_holder;
         token.data_type = NUM;
-        LOG("> current pos: %d, the rest is: %s\n", *pos, buff + *pos);
+        LOG("> current pos: %d\n", *pos);
         return token;
     }
 
@@ -101,7 +101,7 @@ token_t detect_token(char *buff, int *pos)
             token.data_type = COMMAND;
             (*pos) += commands[i].cmd_length;
             LOG("the smeshenie: %d\n", commands[i].cmd_length);
-            LOG("> current pos: %d, the rest is: %s\n", *pos, buff + *pos);
+            LOG("> current pos: %d\n", *pos);
             return token;
         }
 
@@ -125,7 +125,7 @@ token_t detect_token(char *buff, int *pos)
     token.data.string   = string;
     token.data_type     = YET_TO_DET;
 
-    LOG("> current pos: %d, the rest is: %s\n", *pos, buff + *pos);
+    LOG("> current pos: %d\n", *pos);
     return token;
 }
 
