@@ -4,6 +4,7 @@ n = src/n_tree_func/n_node.h
 c = src/include/tokenizator.h
 l = src/include/lang.h
 g = graph_creator/create_graph.h
+cm = src/compiler/compiler.h
 cmd = src/include/commands.h
 tcpp = src/lang_parser/tokenizator.cpp
 ncpp = src/n_tree_func/n_node.cpp
@@ -11,9 +12,10 @@ mcpp = src/main.cpp
 ccpp = src/commands.cpp
 gcpp = graph_creator/create_graph.cpp
 pcpp = src/lang_parser/lang_parser.cpp
+cmcpp = src/compiler/compiler.cpp
 
-all: file_reader.o tokenizator.o node_func.o main.o commands.o parser.o create_graph.o
-	g++ -Wall -o bin/language bin/file_reader.o bin/tokenizator.o bin/node_func.o bin/main.o bin/commands.o bin/parser.o bin/create_graph.o
+all: file_reader.o tokenizator.o node_func.o main.o commands.o parser.o create_graph.o compiler.o
+	g++ -Wall -o bin/language bin/file_reader.o bin/tokenizator.o bin/node_func.o bin/main.o bin/commands.o bin/parser.o bin/create_graph.o bin/compiler.o
 
 tree_test:	node_func.o tree_t.o create_graph.o
 	g++ -Wall -o bin/tree_test bin/node_func.o bin/create_graph.o bin/tree_t.o
@@ -36,6 +38,9 @@ main.o: $(mcpp) $(l)
 
 commands.o: $(ccpp) $(cmd)
 	g++ $(d) -c $(ccpp) -o bin/commands.o
+
+compiler.o:	$(cmcpp) $(cm)
+	g++ $(d) -c $(cmcpp) -o bin/compiler.o
 
 create_graph.o: $(gcpp) $(g)
 	g++ $(d) -c $(gcpp) -o bin/create_graph.o
