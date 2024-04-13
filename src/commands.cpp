@@ -23,6 +23,7 @@ command_t commands[COMMANDS_NUMBER] =
     {ZAP, ",", 1},
     {PTR_VAL, "Pavlodar,brat", 13},
     {INCL, "include", 7},
+    {IF, "if", 2},
 
 
 
