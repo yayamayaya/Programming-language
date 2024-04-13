@@ -29,15 +29,20 @@ E           - стандартный парсер выражений из диф
 name        ::= [а-я, А-Я]
 
 2 итерация:
-code        ::= {STR}+0
-STR         ::= variable | if
-if          ::= "if" '('E')' [STR]
+code        ::= body+0
+body        ::= STR+
+STR         ::= if | variable
+if          ::= "if" '('E')' ['{']variable['}']
 variable    ::= name [var_op E] "eu"
 var_op      ::= "="
 E           - стандартный парсер выражений из дифф
 name        ::= [а-я, А-Я]
 */
 
+
+node_t *pars_STR();
+node_t *pars_body();
+node_t *pars_if();
 node_t *pars_E();
 node_t *pars_mult();
 node_t *pars_power();
@@ -102,17 +107,102 @@ node_t *create_syntax_tree(token_t *token_arr)
     LOG("-----------------------------------------------\n\n");
     LOG("> creating syntax tree:\n");
 
-    node_t *root = create_node(BODY, CONN, 0);
-
-    while (tkns->data_type != $)
+    node_t *root = pars_body();
+    if (tkns->data_type != $)
     {
-        LOG("> creating next branch in the body:\n");
-        _ADD_B(root, pars_variable());
+        LOG("syntax error, $ wasn't found%40s\n", "[error]");
+        kill_tree(root);
+        return NULL;
     }
-    if (root->branch_number == 0)
-        LOG(">>> syntax error, file is empty%40s\n", "[error]");
-    
+
     return root;
+}
+
+node_t *pars_STR()
+{
+    node_t *node = pars_if();
+    if (node)
+        return node;
+    
+    node = pars_variable();
+    if (node)
+        return node;
+
+    LOG(">>> string wasn't found, returning NULL\n");
+    return NULL;
+}
+
+node_t *pars_body()
+{
+    node_t *node = NULL;
+    node_t *body = create_node(BODY, CONN, 0);
+    do
+    {
+        node = pars_STR();
+        _ADD_B(body, node);
+    } while (node && tkns->data_type != $);
+
+    if (!body->branch_number)
+    {
+        LOG("> body don't have any strings, returning NULL");
+        kill_tree(body);
+        return NULL;
+    }
+    
+    LOG("body created with: %d branches\n", body->branch_number);
+    return body;
+}
+
+node_t *pars_if()
+{
+    if (tkns->data_type != OP || tkns->data.command != IF)
+    {
+        LOG("> if operator wasn't found...\n");
+        return NULL;
+    }
+    TOK_SHIFT(); 
+
+    node_t *node = create_node((unsigned char)IF, OP, 0);
+    if (tkns->data_type == OP && tkns->data.command == OP_BR)
+    {
+        LOG("> opening bracket was found\n");
+        TOK_SHIFT();
+        _ADD_B(node, pars_E());
+        if (tkns->data_type == OP && tkns->data.command == CL_BR)
+        {
+            TOK_SHIFT();
+        }
+        else
+        {
+            LOG(">>> syntax error: closing bracket wasn't found%40s\n", "[error]");
+            kill_tree(node);
+            return NULL;
+        }
+    }
+    else
+    {
+        LOG(">>> syntax error: opening bracket wasn't found%40s\n", "[error]");
+        kill_tree(node);
+        return NULL;
+    }
+
+    if (tkns->data_type == OP && tkns->data.command == OP_F_BR)
+    {
+        LOG("> opening figure bracket was found\n");
+        TOK_SHIFT();
+        while (tkns->data_type != OP || tkns->data.command != CL_F_BR)  
+            _ADD_B(node, pars_body());
+
+        TOK_SHIFT();
+        LOG("> the insights of figure brackets were parsed, closing figure braclet was found\n");
+    }
+    else
+    {
+        LOG("> figure bracket wasn't found, parsing a string\n");
+        _ADD_B(node, pars_STR());
+    }
+    
+    return node;
 }
 
 node_t *pars_variable()
@@ -120,18 +210,16 @@ node_t *pars_variable()
     LOG("> creating an variable:\n");
     node_t *node        = pars_name();
     if (!node)
-    {
-        TOK_SHIFT();
         return NULL;
-    }
-    
+
+    node->data_type = VAR;   
+
     LOG("> checking for the operator:\n");
     if (tkns->data_type == COMMAND)
     {
         node_t *op          = pars_var_op();        
         if (op)
         {
-            node->data_type = VAR;
             LOG("operator found\n");
             _ADD_B(op, node);
             _ADD_B(op, pars_E());
@@ -147,10 +235,9 @@ node_t *pars_variable()
         if (node)
         {
             kill_tree(node);
-            node = NULL;
+            return NULL;
         }
     }
-
     TOK_SHIFT();
 
     return node;
