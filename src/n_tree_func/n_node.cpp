@@ -136,6 +136,12 @@ int add_branch(node_t *parent_node, node_t *branch)
 {
     assert(parent_node);
 
+    if (!branch)
+    {
+        LOG(">>> NULL branch was given, nothing will be added\n");
+        return 1;
+    }
+
     parent_node->branch_number++;
     node_t **branch_holder = (node_t **)realloc(parent_node->branches, parent_node->branch_number * sizeof(node_t *));
     if (!branch_holder)

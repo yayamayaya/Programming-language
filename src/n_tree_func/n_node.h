@@ -13,6 +13,9 @@
 #define PRINT_NODE()
 #endif
 
+#define L 0
+#define R 1
+
 typedef union
 {
     unsigned char command;
