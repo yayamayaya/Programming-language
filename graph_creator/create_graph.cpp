@@ -18,7 +18,7 @@ int create_gparh_code(node_t *node, const int PNG_TYPE) //передавать �
     LOG(">> tree was read succes fully\n");
 
     fclose(gcode);
-    print_png(EXPR);
+    print_png(EXPRETION);
 
     return NO_ERR;
 }
@@ -29,7 +29,7 @@ void print_png(const int PNG_TYPE)
     char png_call[200] = {0};
     switch (PNG_TYPE)
     {
-    case EXPR:
+    case EXPRETION:
         snprintf(png_call, sizeof(png_call), "%s%s", DOT_CALL, "syntax_tree.png");
         break;
     default:
@@ -47,8 +47,8 @@ void print_png(const int PNG_TYPE)
 {
     system("rm -f graph/operations");
     system("rm -f graph/diff_operations");
-    system("rm -f differentiated_expression.png");
-    system("rm -f expression.png");
+    system("rm -f differentiated_EXPRETIONession.png");
+    system("rm -f EXPRETIONession.png");
 }*/
 
 int go_through_tree(FILE *gcode, node_t *node)

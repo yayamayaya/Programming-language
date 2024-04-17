@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "../src/n_tree_func/n_node.h"
+#include "../src/include/n_node.h"
 #include "../../common/log/log.h"
 
 #define EXPR_LOC "data/expression_to_diff.txt"
@@ -47,7 +47,7 @@
 
 enum PNG_NAMES
 {
-    EXPR = 0,
+    EXPRETION = 0,
     DIFF_EXPR,
     DIFF_OP,
 };
