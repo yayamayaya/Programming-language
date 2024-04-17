@@ -3,3 +3,14 @@
 mov [место в памяти], 10
 2) if ()
 
+struct  func
+{
+    char *func name;
+    char *stk_frame_adress;
+}
+
+mov rbp, 10
+mov [rbp+0], 211
+
+var         == x;
+rel_address == 0;
