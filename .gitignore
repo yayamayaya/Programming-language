@@ -3,3 +3,5 @@ logs
 tests
 syntax_tree.png
 graph_creator/graphcode.txt
+data/code.txt
+src/compiler/описание операторов командами asm.txt
