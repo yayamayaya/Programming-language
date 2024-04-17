@@ -1,11 +1,17 @@
 d = -Wall -g -DDEBUG
-t = src/lang_parser/tokenizator.h
-n = src/n_tree_func/n_node.h
+
+t = src/include/tokenizator.h
+n = src/include/n_node.h
 c = src/include/tokenizator.h
 l = src/include/lang.h
 g = graph_creator/create_graph.h
-cm = src/compiler/compiler.h
+b = src/include/body.h
+cm = src/include/compiler.h
 cmd = src/include/commands.h
+b = src/include/body.h
+ef = src/include/expr_func.h
+vf = src/include/variable_func.h
+
 tcpp = src/lang_parser/tokenizator.cpp
 ncpp = src/n_tree_func/n_node.cpp
 mcpp = src/main.cpp
@@ -13,9 +19,12 @@ ccpp = src/commands.cpp
 gcpp = graph_creator/create_graph.cpp
 pcpp = src/lang_parser/lang_parser.cpp
 cmcpp = src/compiler/compiler.cpp
+cbcpp = src/compiler/comp_body.cpp
+efcpp = src/compiler/expr_func.cpp
+vfcpp = src/compiler/variable_func.cpp
 
-all: file_reader.o tokenizator.o node_func.o main.o commands.o parser.o create_graph.o compiler.o
-	g++ -Wall -o bin/language bin/file_reader.o bin/tokenizator.o bin/node_func.o bin/main.o bin/commands.o bin/parser.o bin/create_graph.o bin/compiler.o
+all: file_reader.o tokenizator.o node_func.o main.o commands.o parser.o create_graph.o compiler.o compile_body.o expr_func.o var_func.o
+	g++ -Wall -o bin/language bin/file_reader.o bin/tokenizator.o bin/node_func.o bin/main.o bin/commands.o bin/parser.o bin/create_graph.o bin/compiler.o bin/compile_body.o bin/expr_func.o bin/var_func.o
 
 tree_test:	node_func.o tree_t.o create_graph.o
 	g++ -Wall -o bin/tree_test bin/node_func.o bin/create_graph.o bin/tree_t.o
@@ -54,6 +63,14 @@ token_test.o:	tests/tokeniz_test.cpp
 parser.o:	$(pcpp) $(l)
 	g++ $(d) -c $(pcpp) -o bin/parser.o
 
+compile_body.o: $(cbcpp) $(b)
+	g++ $(d) -c $(cbcpp) -o bin/compile_body.o
+
+expr_func.o: $(efcpp) $(ef)
+	g++ $(d) -c $(efcpp) -o bin/expr_func.o
+
+var_func.o:	$(vfcpp) $(vf)
+	g++ $(d) -c $(vfcpp) -o bin/var_func.o
 
 rtt:
 	valgrind bin/token_test
