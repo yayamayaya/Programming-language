@@ -1,4 +1,4 @@
-#include "n_node.h"
+#include "../include/n_node.h"
 
 node_t *create_node(const int data, const unsigned char data_type, const int branch_number, ...)
 {
