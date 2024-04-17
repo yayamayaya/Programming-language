@@ -1,9 +1,9 @@
 #ifndef PROG_LANG
 #define PROG_LANG
 
-#include "../lang_parser/tokenizator.h"
+#include "tokenizator.h"
 #include "../../graph_creator/create_graph.h"
-#include "../compiler/compiler.h"
+#include "compiler.h"
 
 #ifdef DEBUG
 #define TOK_SHIFT()\

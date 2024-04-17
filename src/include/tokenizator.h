@@ -1,12 +1,11 @@
 #ifndef TOKENIZATOR
 #define TOKENIZATOR
 
-#include <stdio.h>
 #include "../../../common/log/log.h"
 #include "../../../common/file_reading/file_reader.h"
-#include "../include/commands.h"
+#include "commands.h"
 #include "locale.h"
-#include "../n_tree_func/n_node.h"
+#include "n_node.h"
 #include "ctype.h"
 #include "string.h"
 

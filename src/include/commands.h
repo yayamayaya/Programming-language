@@ -22,6 +22,7 @@ enum COMMANDS
     IF      = 0x11,
 
     BODY    = 0x0F,
+    EXPR    = 0x0E,
 
     LOG_E,
     LOG_NE,
@@ -48,6 +49,5 @@ typedef struct
 } command_t;
 
 extern command_t commands[COMMANDS_NUMBER];
-
 
 #endif

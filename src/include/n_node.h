@@ -24,7 +24,6 @@ typedef union
     const char *string;
 } data_t;
 
-
 typedef struct node_t
 {
     data_t data;
