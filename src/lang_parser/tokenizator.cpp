@@ -1,4 +1,4 @@
-#include "tokenizator.h"
+#include "../include/tokenizator.h"
 
 #define INITIAL_TOKEN_ARR_SIZE 100
 
@@ -32,6 +32,7 @@ int tokenize(token_t **tokens, const char *file_loc)
         {
             LOG(">>> string has NULL pointer in tokens%40s\n", "[error]");
             free(buff);
+            free_tok_strings(token_arr);
             free(token_arr);
             return TOK_NULL_STR;
         }
@@ -131,6 +132,8 @@ token_t detect_token(char *buff, int *pos)
 
 void free_tok_strings(token_t *tokens)
 {
+    assert(tokens);
+
     for (int i = 0; (tokens + i)->data_type != $; i++)
         if (tokens[i].data_type == YET_TO_DET)
             free((void *)((tokens + i)->data.string));
