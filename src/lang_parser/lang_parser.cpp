@@ -111,7 +111,8 @@ node_t *create_syntax_tree(token_t *token_arr)
     if (tkns->data_type != $)
     {
         LOG("syntax error, $ wasn't found%40s\n", "[error]");
-        kill_tree(root);
+        if (root)
+            kill_tree(root);
         return NULL;
     }
 
@@ -144,7 +145,7 @@ node_t *pars_body()
 
     if (!body->branch_number)
     {
-        LOG("> body don't have any strings, returning NULL");
+        LOG("> body don't have any strings, returning NULL\n");
         kill_tree(body);
         return NULL;
     }
@@ -282,7 +283,9 @@ node_t *pars_E()
         node = create_node(command, OP, 2, node, pars_mult());
     }
 
-    return node;
+    node_t *expr = create_node(EXPR, CONN, 1, node);
+
+    return expr;
 }
 
 node_t *pars_mult()
