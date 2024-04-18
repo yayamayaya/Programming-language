@@ -93,6 +93,12 @@ double make_operation(double first_arg, double second_arg, const unsigned char o
     case STAR:      result = first_arg * second_arg;        break;
     case SLASH:     result = first_arg / second_arg;        break;
     case POW:       result = pow(first_arg, second_arg);    break;
+    case LOG_E:     result = first_arg == second_arg;       break;
+    case LOG_NE:    result = first_arg != second_arg;       break;
+    case LOG_A:     result = first_arg > second_arg;        break;
+    case LOG_AE:    result = first_arg >= second_arg;       break;
+    case LOG_B:     result = first_arg < second_arg;        break;
+    case LOG_BE:    result = first_arg <= second_arg;       break;
 
     default:
         LOG(">>> fatal error in making an operation%40s\n", "[error]");
