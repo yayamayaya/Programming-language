@@ -51,8 +51,45 @@ int make_body_command(variables *var_arr, node_t *node)
         {
         case E:
             error = assign_variable(var_arr, node);
+            break;
+        
+        case IF:
+            if (node->branch_number != 2)
+            {
+                LOG(">>> error occured: if connection node don't have only 2 branches%40s\n", "[error]");
+                return IF_N_TWO_BRANCH;
+            }
+
+            error = expr_in_asm(var_arr, node->branches[R]->branches[0]);
             if (error)
                 return error;
+
+            fprintf(asm_file, "push 0\nje L%p\n\n", node);
+
+            error = compile_body(node->branches[L]);
+
+            fprintf(asm_file, "\nL%p:\n", node);
+            break;
+
+        case WHILE:
+            if (node->branch_number != 2)
+            {
+                LOG(">>> error occured: if connection node don't have only 2 branches%40s\n", "[error]");
+                return IF_N_TWO_BRANCH;
+            }
+
+            LOG("> translating while\n");
+            fprintf(asm_file, "\nS%p:\n", node);
+            error = expr_in_asm(var_arr, node->branches[R]->branches[0]);
+            if (error)
+                return error;
+
+            fprintf(asm_file, "push 0\nje L%p\n\n", node);
+
+            error = compile_body(node->branches[L]);
+
+            fprintf(asm_file, "jmp S%p\n\n", node);
+            fprintf(asm_file, "\nL%p:\n", node);
             break;
 
         default:
@@ -63,8 +100,6 @@ int make_body_command(variables *var_arr, node_t *node)
 
     case VAR:
         error = create_variable(var_arr, node);
-        if (error)
-            return error;
         break;
 
     case CONN:
@@ -72,8 +107,6 @@ int make_body_command(variables *var_arr, node_t *node)
         {
         case BODY:
             error = compile_body(node);
-            if (error)
-                return error;
             break;
 
         case EXPR:
@@ -85,8 +118,6 @@ int make_body_command(variables *var_arr, node_t *node)
             node = node->branches[0];
 
             error = expr_in_asm(var_arr, node);
-            if (error)
-                return error;
             break;
 
         default:
@@ -102,7 +133,7 @@ int make_body_command(variables *var_arr, node_t *node)
         break;
     }
 
-    return 0;
+    return error;
 }
 
 void free_local_mem(variables *var_arr)
