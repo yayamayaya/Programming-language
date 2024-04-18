@@ -178,7 +178,7 @@ node_t *pars_cond()
             _ADD_B(node, pars_body());
 
         TOK_SHIFT();
-        LOG("> the insights of figure brackets were parsed, closing figure braclet was found\n");
+        LOG("> the insights of figure brackets were parsed, closing figure bracket was found\n");
     }
     else
     {
