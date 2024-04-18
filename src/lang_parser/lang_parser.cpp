@@ -37,13 +37,23 @@ variable    ::= name [var_op E] "eu"
 var_op      ::= "="
 E           - стандартный парсер выражений из дифф
 name        ::= [а-я, А-Я]
+
+3 итерация:
+code        ::= body+0
+body        ::= STR+
+STR         ::= cond | variable
+cond        ::= '{']variable['}' '('E')' {"if" | "while"}
+variable    ::= "eu, " name [E "="]
+E           - стандартный парсер выражений из дифф + лог. операции
+name        ::= [а-я, А-Я]
 */
 
 
 node_t *pars_STR();
 node_t *pars_body();
-node_t *pars_if();
+node_t *pars_cond();
 node_t *pars_E();
+node_t *pars_sum();
 node_t *pars_mult();
 node_t *pars_power();
 node_t *pars_number();
@@ -121,7 +131,7 @@ node_t *create_syntax_tree(token_t *token_arr)
 
 node_t *pars_STR()
 {
-    node_t *node = pars_if();
+    node_t *node = pars_cond();
     if (node)
         return node;
     
@@ -154,16 +164,28 @@ node_t *pars_body()
     return body;
 }
 
-node_t *pars_if()
+node_t *pars_cond()
 {
-    if (tkns->data_type != OP || tkns->data.command != IF)
+    node_t *node = NULL;
+
+    if (tkns->data_type == OP && tkns->data.command == OP_F_BR)
     {
-        LOG("> if operator wasn't found...\n");
+        node = create_node((unsigned char)0, OP, 0);
+
+        LOG("> opening figure bracket was found\n");
+        TOK_SHIFT();
+        while (tkns->data_type != OP || tkns->data.command != CL_F_BR)  
+            _ADD_B(node, pars_body());
+
+        TOK_SHIFT();
+        LOG("> the insights of figure brackets were parsed, closing figure braclet was found\n");
+    }
+    else
+    {
+        LOG("> figure bracket wasn't found, returning NULL\n");
         return NULL;
     }
-    TOK_SHIFT(); 
 
-    node_t *node = create_node((unsigned char)IF, OP, 0);
     if (tkns->data_type == OP && tkns->data.command == OP_BR)
     {
         LOG("> opening bracket was found\n");
@@ -187,21 +209,14 @@ node_t *pars_if()
         return NULL;
     }
 
-    if (tkns->data_type == OP && tkns->data.command == OP_F_BR)
+    if (tkns->data_type != OP || !(tkns->data.command == IF || tkns->data.command == WHILE))
     {
-        LOG("> opening figure bracket was found\n");
-        TOK_SHIFT();
-        while (tkns->data_type != OP || tkns->data.command != CL_F_BR)  
-            _ADD_B(node, pars_body());
-
-        TOK_SHIFT();
-        LOG("> the insights of figure brackets were parsed, closing figure braclet was found\n");
+        LOG(">>> syntax error: if/while operator wasn't found...%40s\n", "[error]");
+        kill_tree(node);
+        return NULL;
     }
-    else
-    {
-        LOG("> figure bracket wasn't found, parsing a string\n");
-        _ADD_B(node, pars_STR());
-    }
+    node->data.command = tkns->data.command;
+    TOK_SHIFT(); 
     
     return node;
 }
@@ -209,52 +224,39 @@ node_t *pars_if()
 node_t *pars_variable()
 {
     LOG("> creating an variable:\n");
+    if ((tkns->data_type != COMMAND) || (tkns->data.command != STR_END))
+    {
+        LOG("string start wasn't found, returning NULL\n");
+        return NULL;
+    }
+    TOK_SHIFT();
+
     node_t *node        = pars_name();
     if (!node)
         return NULL;
 
     node->data_type = VAR;   
 
-    LOG("> checking for the operator:\n");
-    if (tkns->data_type == COMMAND)
+    if (tkns->data_type == OP && tkns->data.command == VAR_END)
     {
-        node_t *op          = pars_var_op();        
-        if (op)
-        {
-            LOG("operator found\n");
-            _ADD_B(op, node);
-            _ADD_B(op, pars_E());
-            
-            node = op;
-            LOG("> variable was parsed with operator\n");
-        }
-    }
-
-    if ((tkns->data_type != COMMAND) || (tkns->data.command != STR_END))
-    {
-        LOG(">>> syntax error%40s\n", "[error]");
-        if (node)
-        {
-            kill_tree(node);
-            return NULL;
-        }
-    }
-    TOK_SHIFT();
-
-    return node;
-}
-
-node_t *pars_var_op()
-{
-    LOG("> searching for variable command:\n");
-    if (tkns->data.command & VAR_OP)
-    {
-        node_t *node = create_node(tkns->data.command, OP, 0);
+        LOG("a variable without assignment was found\n");
         TOK_SHIFT();
         return node;
     }
     
-    LOG("variable opertion wasn't found\n");
+    LOG("> creating expression and operator:\n");
+    node_t *expr = pars_E();
+
+    if (tkns->data_type == OP && tkns->data.command == E)
+    {
+        LOG("> variable with assignment found\n");
+        TOK_SHIFT();
+        return create_node((unsigned char)E, OP, 2, node, expr);
+    }
+
+    LOG("syntax error, assign operator wasn't found%40s\n", "[error]");
+    kill_tree(node);
+    kill_tree(expr);
     return NULL;
 }
 
@@ -274,6 +276,22 @@ node_t *pars_name()
 //--------------------------------------------------------------Expression parser---------------------------------------------------------------
 node_t *pars_E()
 {
+    node_t *node = pars_sum();
+
+    while (tkns->data_type == COMMAND && (LOG_E <= tkns->data.command && tkns->data.command <= LOG_BE))
+    {
+        unsigned char command = tkns->data.command;
+        TOK_SHIFT();
+        node = create_node(command, OP, 2, node, pars_sum());
+    }
+
+    node_t *expr = create_node(EXPR, CONN, 1, node);
+
+    return expr;
+}
+
+node_t *pars_sum()
+{
     node_t *node = pars_mult();
 
     while (tkns->data_type == COMMAND && (tkns->data.command == PLUS || tkns->data.command == MINUS))
@@ -283,9 +301,7 @@ node_t *pars_E()
         node = create_node(command, OP, 2, node, pars_mult());
     }
 
-    node_t *expr = create_node(EXPR, CONN, 1, node);
-
-    return expr;
+    return node;
 }
 
 node_t *pars_mult()
