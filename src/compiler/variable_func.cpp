@@ -20,7 +20,16 @@ int assign_variable(variables *var_arr, node_t *node)
 
 
     LOG("> creating an assembly command:\n");
+
+    variable_t *existing_var = find_var(var_arr, node->branches[L]->data.string);
+    if (existing_var)
+    {
+        LOG("existing variable found, assigning a value to it:\n");
+        fprintf(asm_file, "pop [rbp+%d]\n", existing_var->rel_address);
+        return 0;
+    }
     fprintf(asm_file, "pop [rbp+%d]\n\n", free_mem_ptr);
+    
     create_variable(var_arr, node->branches[L]);
 
     return 0;
@@ -36,6 +45,7 @@ int create_variable(variables *var_arr, node_t *node)
     LOG("> locating a memory for variable:\n");
     var_arr->vars[var_arr->var_num].var         = node->data.string;
     var_arr->vars[var_arr->var_num].rel_address = free_mem_ptr;
+    lcl_mem.loc_mems_size[lcl_mem.loc_mems_number - 1] += 1;
     LOG("> variable was written in the array\n");
 
     var_arr->var_num++;
@@ -54,7 +64,6 @@ variable_t *find_var(variables *var_arr, const char *var_name)
         }
     
     LOG("> variable wasn't found\n");
-    printf(">>> Compilation error:\n variable %s was not defined in this scope\n", var_name);
 
     return NULL;
 }

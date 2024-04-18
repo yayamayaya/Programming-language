@@ -1,5 +1,7 @@
 #include "../include/body.h"
 
+//TODO: перенести всю таблицу переменных в стек, избавиться от глупо 
+
 int make_body_command(variables *var_arr, node_t *node);
 void free_local_mem(variables *var_arr);
 
@@ -13,14 +15,7 @@ int compile_body(node_t *body_root)
         return BODY_IS_NOT_NODE_ERR;
     }
 
-    variables var_arr = {0};
-    var_arr.vars = (variable_t *)calloc(10, sizeof(variable_t));
-    if (!var_arr.vars)
-    {
-        LOG(">>> couldn't allocate memory for variable array%40s\n", "[error]");
-        return VAR_ARR_MEM_ALC_ERR;
-    }
-
+    int local_vars_num = 0;
     for (int i = 0; i < body_root->branch_number; i++)
     {
         int error = make_body_command(&var_arr, body_root->branches[i]);
@@ -31,6 +26,7 @@ int compile_body(node_t *body_root)
         }
     }
     LOG("> body was read successfully\n");
+
     var_dump(&var_arr);
     free_local_mem(&var_arr);
 
@@ -99,7 +95,10 @@ int make_body_command(variables *var_arr, node_t *node)
         break;
 
     case VAR:
-        error = create_variable(var_arr, node);
+        if (find_var(var_arr, node->data.string))
+            LOG("variable already exists, continuing forward\n");
+        else
+            error = create_variable(var_arr, node);
         break;
 
     case CONN:
@@ -140,14 +139,21 @@ void free_local_mem(variables *var_arr)
 {
     assert(var_arr);
 
-    LOG("> freeing all local variables:\n");
-    for (int i = 0; i < var_arr->var_num; i++)
+    LOG("> freeing %d local variables:\n", lcl_mem.loc_mems_size[lcl_mem.loc_mems_number - 1]);
+    for (int i = 0; i < lcl_mem.loc_mems_size[lcl_mem.loc_mems_number - 1]; i++)
     {
-        fprintf(asm_file, "mov [rbp+%d], 0\n", var_arr->vars[i].rel_address);
-        var_arr->vars[i].var = NULL; 
+        fprintf(asm_file, "mov [rbp+%d], 0\n", var_arr->vars[var_arr->var_num - 1 - i].rel_address);
+        var_arr->vars[var_arr->var_num - 1 - i].var = NULL; 
+        var_arr->var_num--;
     }
+
+    lcl_mem.loc_mems_size[lcl_mem.loc_mems_number - 1] = 0;
+    lcl_mem.loc_mems_number--;
     
-    free(var_arr->vars);
+    LOG("> current variables number: %d\n", var_arr->var_num);
+    LOG("> current local memories number: %d\n", lcl_mem.loc_mems_number);
+    LOG("> current local memory variables number: %d\n", lcl_mem.loc_mems_size[lcl_mem.loc_mems_number - 1]);
+    var_dump(var_arr);
     free_mem_ptr = 0;
 
     LOG("> memory was free'd successfully\n");
