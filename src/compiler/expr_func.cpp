@@ -72,6 +72,24 @@ int make_command(unsigned char cmd)
     case POW:
         fprintf(asm_file, "pow\n");
         break;
+    case LOG_E:
+        fprintf(asm_file, "log_e\n");
+        break;
+    case LOG_NE:
+        fprintf(asm_file, "log_ne\n");
+        break;
+    case LOG_A:
+        fprintf(asm_file, "log_a\n");
+        break;
+    case LOG_AE:
+        fprintf(asm_file, "log_ae\n");
+        break;
+    case LOG_B:
+        fprintf(asm_file, "log_b\n");
+        break;
+    case LOG_BE:
+        fprintf(asm_file, "log_be\n");
+        break;
 
     default:
         LOG(">>> fatal error occured: couldn't detect arithmetic operation: %d%40s\n", cmd, "[error]");
