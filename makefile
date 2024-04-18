@@ -11,6 +11,7 @@ cmd = src/include/commands.h
 b = src/include/body.h
 ef = src/include/expr_func.h
 vf = src/include/variable_func.h
+ar = src/include/arithm.h
 
 tcpp = src/lang_parser/tokenizator.cpp
 ncpp = src/n_tree_func/n_node.cpp
@@ -22,9 +23,10 @@ cmcpp = src/compiler/compiler.cpp
 cbcpp = src/compiler/comp_body.cpp
 efcpp = src/compiler/expr_func.cpp
 vfcpp = src/compiler/variable_func.cpp
+arcpp = src/compiler/arithm_op.cpp
 
-all: file_reader.o tokenizator.o node_func.o main.o commands.o parser.o create_graph.o compiler.o compile_body.o expr_func.o var_func.o
-	g++ -Wall -o bin/language bin/file_reader.o bin/tokenizator.o bin/node_func.o bin/main.o bin/commands.o bin/parser.o bin/create_graph.o bin/compiler.o bin/compile_body.o bin/expr_func.o bin/var_func.o
+all: file_reader.o tokenizator.o node_func.o main.o commands.o parser.o create_graph.o compiler.o compile_body.o expr_func.o var_func.o arithm.o
+	g++ -Wall -o bin/language bin/file_reader.o bin/tokenizator.o bin/node_func.o bin/main.o bin/commands.o bin/parser.o bin/create_graph.o bin/compiler.o bin/compile_body.o bin/expr_func.o bin/var_func.o bin/arithm.o
 
 tree_test:	node_func.o tree_t.o create_graph.o
 	g++ -Wall -o bin/tree_test bin/node_func.o bin/create_graph.o bin/tree_t.o
@@ -54,12 +56,6 @@ compiler.o:	$(cmcpp) $(cm)
 create_graph.o: $(gcpp) $(g)
 	g++ $(d) -c $(gcpp) -o bin/create_graph.o
 
-tree_t.o: tests/tree_test.cpp
-	g++ $(d) -c tests/tree_test.cpp -o bin/tree_t.o
-
-token_test.o:	tests/tokeniz_test.cpp
-	g++ $(d) -c tests/tokeniz_test.cpp -o bin/token_test.o
-
 parser.o:	$(pcpp) $(l)
 	g++ $(d) -c $(pcpp) -o bin/parser.o
 
@@ -71,6 +67,9 @@ expr_func.o: $(efcpp) $(ef)
 
 var_func.o:	$(vfcpp) $(vf)
 	g++ $(d) -c $(vfcpp) -o bin/var_func.o
+
+arithm.o: $(arcpp) $(ar)
+	g++ $(d) -c $(arcpp) -o bin/arithm.o
 
 rtt:
 	valgrind bin/token_test
