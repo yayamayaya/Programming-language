@@ -7,9 +7,6 @@
 #include "../src/include/n_node.h"
 #include "../../common/log/log.h"
 
-#define EXPR_LOC "data/expression_to_diff.txt"
-#define PNG_LOC "dot graph_creator/graphcode.txt -Tpng -otree.png"
-
 #define GPRAPH_CODE_START   "digraph G\n\
 {\n\
     graph [dpi = 1000];\n\
@@ -30,13 +27,10 @@
                                                                                 node, node->data.command, node, node->branch_number
 #define GRAPH_VAR_NODE      "\tnode_num%p [shape = \"record\", color=\"#70578a\", label = \"{%s | {VAR | %p | %db}}\"];\n", \
                                                                                 node, node->data.string, node, node->branch_number
-#define GRAPH_CONN_NODE     "\tnode_num%p [shape = \"record\", color=\"#003366\", label = \"{%d | {CONN | %p | %db}}\"];\n", \
-                                                                                node, node->data.command, node, node->branch_number
-//}}\"];\n
+#define GRAPH_CONN_NODE     "\tnode_num%p [shape = \"record\", color=\"#003366\", label = \"{%#04x | {CONN | %p | %db}}\"];\n", \
+                                                                                node, node->data.command, node, node->branch_number                                                                          
 
 #define DOT_CALL    "dot graph_creator/graphcode.txt -Tpng -o"
-
-//#define GRAPH
 
 #ifdef GRAPH
 #define _CREATE_GRAPH(arg1, arg2)\
@@ -47,16 +41,9 @@
 
 enum PNG_NAMES
 {
-    EXPRETION = 0,
-    DIFF_EXPR,
-    DIFF_OP,
+    EXPRESSION = 0,
+    STAGE = 1,
 };
-
-/*enum GRAPH_ERRORS
-{
-    ERR = 1,
-    NO_ERR = 0,
-};*/
 
 int create_gparh_code(node_t *node, const int PNG_TYPE);
 void print_png(const int PNG_TYPE);
