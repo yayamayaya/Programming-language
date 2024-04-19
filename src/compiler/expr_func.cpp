@@ -47,6 +47,9 @@ int expr_in_asm(Stack <variable_t> *vars, node_t *node)
             
         return 0;
     }
+    if (node->data_type == CONN && node->data.command == EXPR)
+        return expr_in_asm(vars, node->branches[0]);
+    
     
 
     LOG(">>> fatal error: unacceptable data type of the node for the expression%40s\n", "[error]");
