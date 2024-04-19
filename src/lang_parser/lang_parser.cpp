@@ -46,8 +46,19 @@ cond        ::= '{']variable['}' '('E')' {"if" | "while"}
 variable    ::= "eu, " name [E "="]
 E           - стандартный парсер выражений из дифф + лог. операции
 name        ::= [а-я, А-Я]
-*/
 
+4 итерация:
+code        ::= {variable | func}+0
+func        ::= name '('args')' '{'body'}'
+body        ::= STR+
+STR         ::= cond | variable | func_call
+cond        ::= '{']variable['}' '('E')' {"if" | "while"}
+variable    ::= "eu, " name [E "="]
+E           - стандартный парсер выражений из дифф + лог. операции + вызов функций
+func_call   ::= name '{'args'}'
+args        ::= name [, args]
+name        ::= [а-я, А-Я]
+*/
 
 node_t *pars_STR();
 node_t *pars_body();
@@ -58,7 +69,6 @@ node_t *pars_mult();
 node_t *pars_power();
 node_t *pars_number();
 node_t *pars_variable();
-node_t *pars_var_op();
 node_t *pars_name();
 
 token_t *tkns = NULL;
