@@ -29,11 +29,10 @@ enum COMMANDS
     IF      = 0x11,
     WHILE   = 0x12,
 
-    BODY    = 0x0F,
+    BODY    = 0x0B,
     EXPR    = 0x0E,
-
-
-    
+    ARGS    = 0x0A,
+    PROGRAMM = 0x0C,
 
     RET,
     PTR_VAL,
