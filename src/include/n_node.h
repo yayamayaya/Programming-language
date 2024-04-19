@@ -35,15 +35,13 @@ typedef struct node_t
 
 enum DATA_TYPES
 {
-    OP      = 2,
-    NUM     = 1,
-    ADDRESS = 5,
-    VAR     = 3,
-    FUNC    = 4,
-    CONN    = 10,
+    OP          = 2,
+    NUM         = 1,
+    VAR         = 3,
+    CONN        = 10,
 
     //GRPS
-    VAR_OP  = 0x40
+    VAR_OP      = 0x40,
 };
 
 enum NODE_ERRORS
