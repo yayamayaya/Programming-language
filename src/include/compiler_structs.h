@@ -29,10 +29,4 @@ typedef struct
 
 extern int free_mem_ptr;
 extern FILE *asm_file;
-
-extern variables var_arr;
-
-extern local_memory lcl_mem;
-//extern variables *var_arr;
-
 #endif

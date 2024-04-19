@@ -3,6 +3,6 @@
 
 #include "variable_func.h"
 
-int expr_in_asm(variables *var_arr, node_t *node);
+int expr_in_asm(Stack <variable_t> *vars, node_t *node);
 
 #endif

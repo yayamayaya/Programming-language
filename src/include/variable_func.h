@@ -4,17 +4,16 @@
 #include <string.h>
 #include "compiler_structs.h"
 #include "n_node.h"
-//#include "../../../processor/src/processor.h"
+#include "../../../stack/src/stack.h"
 #include "commands.h"
 #include "expr_func.h"
 
 #define SIZE_OF_RAM 256
 
-int assign_variable(variables *var_arr, node_t *node);
-int create_variable(variables *var_arr, node_t *node);
-variable_t *find_var(variables *var_arr, const char *var_name);
-void clear_all_mem(double *mem_arr);
-void var_dump(variables *var_arr);
+int assign_variable(Stack <variable_t> *vars, node_t *node);
+int create_variable(Stack <variable_t> *vars, node_t *node);
+variable_t *find_var(Stack <variable_t> *vars, const char *var_name);
+void var_dump(Stack <variable_t> *vars);
 
 enum VAR_ERRORS
 {

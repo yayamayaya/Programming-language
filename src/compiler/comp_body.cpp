@@ -1,44 +1,45 @@
 #include "../include/body.h"
 
-//TODO: перенести всю таблицу переменных в стек, избавиться от глупо 
+int make_body_command(Stack <variable_t> *vars, node_t *node);
+void free_local_mem(Stack <variable_t> *vars, int var_num);
 
-int make_body_command(variables *var_arr, node_t *node);
-void free_local_mem(variables *var_arr);
-
-int compile_body(node_t *body_root)
+int compile_body(Stack <variable_t> *vars, node_t *body_root)
 {
     assert(asm_file);
     assert(body_root);
+    assert(vars);
     if (body_root->data_type != CONN || body_root->data.command != BODY)
     {
         LOG("fatal error occured, body root is not a body node%40s\n", "[error]");
         return BODY_IS_NOT_NODE_ERR;
     }
 
-    int local_vars_num = 0;
+    int first_lcl_var_pos = free_mem_ptr;
     for (int i = 0; i < body_root->branch_number; i++)
     {
-        int error = make_body_command(&var_arr, body_root->branches[i]);
+        int error = make_body_command(vars, body_root->branches[i]);
         if (error)
         {
-            free_local_mem(&var_arr);
+            free_local_mem(vars, vars->getStackSize());
             return error;
         }
     }
     LOG("> body was read successfully\n");
+    int last_lcl_var_pos = free_mem_ptr;
 
-    var_dump(&var_arr);
-    free_local_mem(&var_arr);
+    var_dump(vars);
+    free_local_mem(vars, last_lcl_var_pos - first_lcl_var_pos);
 
     return 0;
 }
 
-int make_body_command(variables *var_arr, node_t *node)
+int make_body_command(Stack <variable_t> *vars, node_t *node)
 {
     assert(node);
     assert(asm_file);
-    LOG("> searching for body command:\n");
+    assert(vars);
 
+    LOG("> searching for body command:\n");
     int error = 0;
     switch (node->data_type)
     {
@@ -46,7 +47,7 @@ int make_body_command(variables *var_arr, node_t *node)
         switch (node->data.command)
         {
         case E:
-            error = assign_variable(var_arr, node);
+            error = assign_variable(vars, node);
             break;
         
         case IF:
@@ -56,13 +57,13 @@ int make_body_command(variables *var_arr, node_t *node)
                 return IF_N_TWO_BRANCH;
             }
 
-            error = expr_in_asm(var_arr, node->branches[R]->branches[0]);
+            error = expr_in_asm(vars, node->branches[R]->branches[0]);
             if (error)
                 return error;
 
             fprintf(asm_file, "push 0\nje L%p\n\n", node);
 
-            error = compile_body(node->branches[L]);
+            error = compile_body(vars, node->branches[L]);
 
             fprintf(asm_file, "\nL%p:\n", node);
             break;
@@ -76,13 +77,13 @@ int make_body_command(variables *var_arr, node_t *node)
 
             LOG("> translating while\n");
             fprintf(asm_file, "\nS%p:\n", node);
-            error = expr_in_asm(var_arr, node->branches[R]->branches[0]);
+            error = expr_in_asm(vars, node->branches[R]->branches[0]);
             if (error)
                 return error;
 
             fprintf(asm_file, "push 0\nje L%p\n\n", node);
 
-            error = compile_body(node->branches[L]);
+            error = compile_body(vars, node->branches[L]);
 
             fprintf(asm_file, "jmp S%p\n\n", node);
             fprintf(asm_file, "\nL%p:\n", node);
@@ -95,17 +96,17 @@ int make_body_command(variables *var_arr, node_t *node)
         break;
 
     case VAR:
-        if (find_var(var_arr, node->data.string))
+        if (find_var(vars, node->data.string))
             LOG("variable already exists, continuing forward\n");
         else
-            error = create_variable(var_arr, node);
+            error = create_variable(vars, node);
         break;
 
     case CONN:
         switch (node->data.command)
         {
         case BODY:
-            error = compile_body(node);
+            error = compile_body(vars, node);
             break;
 
         case EXPR:
@@ -116,7 +117,7 @@ int make_body_command(variables *var_arr, node_t *node)
             }
             node = node->branches[0];
 
-            error = expr_in_asm(var_arr, node);
+            error = expr_in_asm(vars, node);
             break;
 
         default:
@@ -135,26 +136,21 @@ int make_body_command(variables *var_arr, node_t *node)
     return error;
 }
 
-void free_local_mem(variables *var_arr)
+void free_local_mem(Stack <variable_t> *vars, int var_num)
 {
-    assert(var_arr);
-
-    LOG("> freeing %d local variables:\n", lcl_mem.loc_mems_size[lcl_mem.loc_mems_number - 1]);
-    for (int i = 0; i < lcl_mem.loc_mems_size[lcl_mem.loc_mems_number - 1]; i++)
-    {
-        fprintf(asm_file, "mov [rbp+%d], 0\n", var_arr->vars[var_arr->var_num - 1 - i].rel_address);
-        var_arr->vars[var_arr->var_num - 1 - i].var = NULL; 
-        var_arr->var_num--;
-    }
-
-    lcl_mem.loc_mems_size[lcl_mem.loc_mems_number - 1] = 0;
-    lcl_mem.loc_mems_number--;
+    assert(vars);
     
-    LOG("> current variables number: %d\n", var_arr->var_num);
-    LOG("> current local memories number: %d\n", lcl_mem.loc_mems_number);
-    LOG("> current local memory variables number: %d\n", lcl_mem.loc_mems_size[lcl_mem.loc_mems_number - 1]);
-    var_dump(var_arr);
-    free_mem_ptr = 0;
+    LOG("> freeing %d local variables:\n", var_num);
+    for (int i = 0; i < var_num; i++)
+    {
+        variable_t var_to_del = {0};
+        vars->stackPop(&var_to_del);
+        fprintf(asm_file, "mov [rbp+%d], 0\n", var_to_del.rel_address);
+        free_mem_ptr--;
+    }
+    
+    LOG("> current variables number: %d\n", vars->getStackSize());
+    var_dump(vars);
 
     LOG("> memory was free'd successfully\n");
     return;

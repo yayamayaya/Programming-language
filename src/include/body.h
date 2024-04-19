@@ -13,6 +13,6 @@ enum BODY_ERRS
     BODY_IS_NOT_NODE_ERR = 1015,
 };
 
-int compile_body(node_t *body_root);
+int compile_body(Stack <variable_t> *vars, node_t *body_root);
 
 #endif

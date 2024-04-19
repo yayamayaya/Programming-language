@@ -1,11 +1,11 @@
 #include "../include/variable_func.h"
 
-int assign_variable(variables *var_arr, node_t *node)
+int assign_variable(Stack <variable_t> *vars, node_t *node)
 {
     assert(asm_file);
     assert(node);
-    assert(var_arr);
     assert(node->data.command == E);
+    assert(vars);
     if (node->branches[L]->data_type != VAR)
     {
         LOG(">>> language parser error occured: the left branch of assign command is NOT an variable%40s\n", "[error]");
@@ -13,15 +13,13 @@ int assign_variable(variables *var_arr, node_t *node)
     }
 
     LOG("calculating expression:\n");
-    int error = expr_in_asm(var_arr, node->branches[R]->branches[0]);
+    int error = expr_in_asm(vars, node->branches[R]->branches[0]);
     if (error)
         return error;
-    
-
 
     LOG("> creating an assembly command:\n");
 
-    variable_t *existing_var = find_var(var_arr, node->branches[L]->data.string);
+    variable_t *existing_var = find_var(vars, node->branches[L]->data.string);
     if (existing_var)
     {
         LOG("existing variable found, assigning a value to it:\n");
@@ -30,60 +28,50 @@ int assign_variable(variables *var_arr, node_t *node)
     }
     fprintf(asm_file, "pop [rbp+%d]\n\n", free_mem_ptr);
     
-    create_variable(var_arr, node->branches[L]);
+    create_variable(vars, node->branches[L]);
 
     return 0;
 }
 
-int create_variable(variables *var_arr, node_t *node)
+int create_variable(Stack <variable_t> *vars, node_t *node)
 {
     assert(asm_file);
     assert(node);
-    assert(var_arr);
     assert(node->data_type == VAR);
+    assert(vars);
 
     LOG("> locating a memory for variable:\n");
-    var_arr->vars[var_arr->var_num].var         = node->data.string;
-    var_arr->vars[var_arr->var_num].rel_address = free_mem_ptr;
-    lcl_mem.loc_mems_size[lcl_mem.loc_mems_number - 1] += 1;
+    variable_t new_var = {node->data.string, free_mem_ptr};
+    vars->stackPush(new_var);
     LOG("> variable was written in the array\n");
 
-    var_arr->var_num++;
     free_mem_ptr++;
     LOG("> current relative free mem pointer: %d\n", free_mem_ptr);
     return 0;
 }
 
-variable_t *find_var(variables *var_arr, const char *var_name)
+variable_t *find_var(Stack <variable_t> *vars, const char *var_name)
 {
-    for (int i = 0; i < var_arr->var_num; i++)
-        if (!strcmp(var_arr->vars[i].var, var_name))
+    assert(vars);
+
+    for (int i = 0; i < vars->getStackSize(); i++)
+        if (!strcmp((vars->getDataOnPos(i)).var, var_name))
         {
-            LOG("> variable %s was found\n", var_arr->vars[i].var);
-            return var_arr->vars + i;
+            LOG("> variable %s was found\n", vars->getDataOnPos(i).var);
+            return vars->getDataPtr() + i;
         }
     
     LOG("> variable wasn't found\n");
-
     return NULL;
 }
 
-void var_dump(variables *var_arr)
+void var_dump(Stack <variable_t> *vars)
 {
-    assert(var_arr);
+    assert(vars);
     LOG("\n ----------------------VARIABLES DUMP:------------------------\n");
 
-    for (int i = 0; i < var_arr->var_num; i++)
-        LOG("%d) %s, memory location: %d\n", i, var_arr->vars[i].var, var_arr->vars[i].rel_address);
+    for (int i = 0; i < vars->getStackSize(); i++)
+        LOG("%d) %s, memory location: %d\n", i, vars->getDataOnPos(i).var, vars->getDataOnPos(i).rel_address);
     
     LOG("--------------------------DUMP ENDED----------------------------\n");
-}
-
-void clear_all_mem(double *mem_arr)
-{
-    for (int i = 0; i < SIZE_OF_RAM; i++)
-        mem_arr[i] = 0;
-    LOG("> all data in the memory was cleared\n");
-    free_mem_ptr = 0;
-    return;
 }

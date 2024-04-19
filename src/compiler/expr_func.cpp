@@ -2,11 +2,11 @@
 
 int make_command(unsigned char cmd);
 
-int expr_in_asm(variables *var_arr, node_t *node)
+int expr_in_asm(Stack <variable_t> *vars, node_t *node)
 {
     assert(asm_file);
     assert(node);
-    assert(var_arr);
+    assert(vars);
     
     LOG("node %p was given for calculation\n", node);
 
@@ -18,7 +18,7 @@ int expr_in_asm(variables *var_arr, node_t *node)
     }
     if (node->data_type == VAR)
     {
-        variable_t *var = find_var(var_arr, node->data.string);
+        variable_t *var = find_var(vars, node->data.string);
         if (!var)
         {
             LOG(">>> variable wasn't defined in expression%40s\n", "[error]");
@@ -37,9 +37,9 @@ int expr_in_asm(variables *var_arr, node_t *node)
             return 1;
         }
         
-        if (expr_in_asm(var_arr, node->branches[L]))
+        if (expr_in_asm(vars, node->branches[L]))
             return 1;
-        if (expr_in_asm(var_arr, node->branches[R]))
+        if (expr_in_asm(vars, node->branches[R]))
             return 1;
 
         if (make_command(node->data.command))
