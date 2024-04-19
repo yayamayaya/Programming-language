@@ -31,7 +31,7 @@ int main(int argc, char const *argv[])
     _CREATE_GRAPH(root, EXPR);
     
     LOG("\n\n--------------------------------COMPILING-----------------------\n");
-    error = compiler(root);
+    //error = compiler(root);
 
     kill_tree(root);
     free_tok_strings(token_arr);
