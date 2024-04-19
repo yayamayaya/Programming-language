@@ -35,9 +35,10 @@ typedef struct node_t
 
 enum DATA_TYPES
 {
-    OP          = 2,
     NUM         = 1,
+    OP          = 2,
     VAR         = 3,
+    FUNC        = 4,
     CONN        = 10,
 
     //GRPS
