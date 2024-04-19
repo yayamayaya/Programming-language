@@ -37,16 +37,14 @@ int compiler(node_t *root)
     LOG("> compiling body\n");
     error = compile_body(&vars, root);
     if (error)
-    {
         LOG("translation error occured%40s\n", "[error]");
-        fclose(asm_file);
-        return error;
-    }
+    else
+        LOG(">> compilation successfull\n");
+
     
     vars.stackDtor();
     fclose(asm_file);
     asm_file = NULL;
-    LOG(">> compilation successfull\n");
 
-    return 0;
+    return error;
 }
