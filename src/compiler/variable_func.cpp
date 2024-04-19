@@ -13,13 +13,13 @@ int assign_variable(Stack <variable_t> *vars, node_t *node)
     }
 
     LOG("calculating expression:\n");
-    int error = expr_in_asm(vars, node->branches[R]->branches[0]);
+    int error = expr_in_asm(vars, node->branches[L]->branches[0]);
     if (error)
         return error;
 
     LOG("> creating an assembly command:\n");
 
-    variable_t *existing_var = find_var(vars, node->branches[L]->data.string);
+    variable_t *existing_var = find_var(vars, node->branches[R]->data.string);
     if (existing_var)
     {
         LOG("existing variable found, assigning a value to it:\n");
