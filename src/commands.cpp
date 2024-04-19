@@ -4,6 +4,7 @@ command_t commands[COMMANDS_NUMBER] =
 {
     {E, "=", 1},
     {VAR_END, "brat", 4},
+    {ZAP, ",", 1},
 
     {PLUS, "+", 1},
     {MINUS, "-", 1},
@@ -27,7 +28,6 @@ command_t commands[COMMANDS_NUMBER] =
     {WHILE, "while", 5},
 
     {RET, "sygeide", 7},
-    {ZAP, ",", 1},
     {PTR_VAL, "Pavlodar,brat", 13},
     {INCL, "include", 7},
 
