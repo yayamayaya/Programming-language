@@ -48,21 +48,24 @@ E           - стандартный парсер выражений из диф
 name        ::= [а-я, А-Я]
 
 4 итерация:
-code        ::= {variable | func}+0
-func        ::= name '('args')' '{'body'}'
-body        ::= STR+
-STR         ::= cond | variable | func_call
-cond        ::= '{']variable['}' '('E')' {"if" | "while"}
-variable    ::= "eu, " name [E "="]
+code        ::= {func}+$
+func        ::= name {variable | {args body}}
+body        ::= '{'STR+'}'
+STR         ::= cond | func_call | E
+cond        ::= body '('E')' {"if" | "while"}
+variable    ::= E "="
 E           - стандартный парсер выражений из дифф + лог. операции + вызов функций
-func_call   ::= name '{'args'}'
-args        ::= name [, args]
+func_call   ::= "eu, " name {args | variable}
+args        ::= '('name [, args]')'
 name        ::= [а-я, А-Я]
 */
 
 node_t *pars_STR();
 node_t *pars_body();
+node_t *pars_func();
 node_t *pars_cond();
+node_t *pars_func_call();
+node_t *pars_args();
 node_t *pars_E();
 node_t *pars_sum();
 node_t *pars_mult();
@@ -73,70 +76,59 @@ node_t *pars_name();
 
 token_t *tkns = NULL;
 
-/*node_t *pars_fv();
-
-
-node_t *create_syntax_tree(token_t *token_arr)
-{
-    tkns = token_arr;
-    node_t *root = create_node((unsigned char)0, BODY, 0);
-
-    while (tkns->data_type != $)
-    {
-        add_branch(root, pars_fv());
-    }
-}
-
-node_t *pars_fv()
-{
-    node_t *name_node = pars_name();
-
-    if (tkns->data_type == COMMAND && tkns->data_type == OP_BR)
-    {
-        name_node->data_type = FUNC;
-        pars_f();
-    }
-    
-}
-
-node_t *pars_args()
-{
-    if (tkns->data_type == COMMAND && tkns->data_type == OP_BR)
-    {
-        TOK_SHIFT();
-        node_t *args = create_node((unsigned char)0, ARGS, 0);
-        if (tkns->data_type == YET_TO_DET)
-            do 
-            {
-                TOK_SHIFT();
-                add_branch(args, pars_name());
-            } while (tkns->data_type == COMMAND && tkns->data.command == ZAP);
-
-        if (tkns->data_type == COMMAND && tkns->data_type == CL_BR)
-        {
-            return args;
-        }  
-    }
-    
-    return NULL;
-}*/
-
 node_t *create_syntax_tree(token_t *token_arr)
 {
     tkns = token_arr;
     LOG("-----------------------------------------------\n\n");
     LOG("> creating syntax tree:\n");
 
-    node_t *root = pars_body();
+    node_t *root = create_node(PROGRAMM, CONN, 0);
+    node_t *node = NULL;
+    
+    do {
+        node = pars_func();
+        _ADD_B(root, node);
+    } while (node && tkns->data_type != $);
+
     if (tkns->data_type != $)
     {
-        LOG("syntax error, $ wasn't found%40s\n", "[error]");
-        if (root)
-            kill_tree(root);
-        return NULL;
+        LOG("$ not found%40s\n", "[error]");
+        kill_tree(root);
+        root = NULL;
     }
 
     return root;
+}
+
+node_t *pars_func()
+{
+    LOG("> creating function\n");
+
+    node_t *func = pars_name();
+    if (!func)
+        return NULL;
+
+    node_t *args = pars_args();
+    if (!args)
+    {
+        LOG("> arguments were'nt parsed, checkin for the variable:\n");
+        func->data_type = VAR;
+        node_t *var = pars_variable();
+        if (!var)
+            return func;
+
+        _ADD_B(var, func);
+        LOG("> variable created\n");
+        return var;
+    }
+
+    func->data_type = FUNC;
+    node_t *body = pars_body();
+    _ADD_B(func, args);
+    _ADD_B(func, body);
+
+    LOG("> function created\n");
+    return func;
 }
 
 node_t *pars_STR()
@@ -145,7 +137,7 @@ node_t *pars_STR()
     if (node)
         return node;
     
-    node = pars_variable();
+    node = pars_func_call();
     if (node)
         return node;
 
@@ -155,6 +147,14 @@ node_t *pars_STR()
 
 node_t *pars_body()
 {
+    if (tkns->data_type != OP || tkns->data.command != OP_F_BR)
+    {
+        LOG("> opening figure bracket not found\n");
+        return NULL;
+    }
+    LOG("> opening figure bracket found\n");
+    TOK_SHIFT();
+
     node_t *node = NULL;
     node_t *body = create_node(BODY, CONN, 0);
     do
@@ -170,62 +170,59 @@ node_t *pars_body()
         return NULL;
     }
     
+    if (tkns->data_type != OP || tkns->data.command != CL_F_BR)
+    {
+        LOG("closing figure bracket not found\n");
+        return NULL;
+    }
+    LOG("> closing figure bracket found\n");
+    TOK_SHIFT();
+
     LOG("body created with: %d branches\n", body->branch_number);
     return body;
 }
 
 node_t *pars_cond()
 {
-    node_t *node = NULL;
-
-    if (tkns->data_type == OP && tkns->data.command == OP_F_BR)
-    {
-        node = create_node((unsigned char)0, OP, 0);
-
-        LOG("> opening figure bracket was found\n");
-        TOK_SHIFT();
-        while (tkns->data_type != OP || tkns->data.command != CL_F_BR)  
-            _ADD_B(node, pars_body());
-
-        TOK_SHIFT();
-        LOG("> the insights of figure brackets were parsed, closing figure bracket was found\n");
-    }
-    else
-    {
-        LOG("> figure bracket wasn't found, returning NULL\n");
+    LOG("> parsing condition\n");
+    node_t *body = pars_body();
+    if (!body)
         return NULL;
-    }
 
-    if (tkns->data_type == OP && tkns->data.command == OP_BR)
-    {
-        LOG("> opening bracket was found\n");
-        TOK_SHIFT();
-        _ADD_B(node, pars_E());
-        if (tkns->data_type == OP && tkns->data.command == CL_BR)
-        {
-            TOK_SHIFT();
-        }
-        else
-        {
-            LOG(">>> syntax error: closing bracket wasn't found%40s\n", "[error]");
-            kill_tree(node);
-            return NULL;
-        }
-    }
-    else
+    LOG("> body in the cond was parsed\n");
+
+    if (tkns->data_type != OP || tkns->data.command != OP_BR)
     {
         LOG(">>> syntax error: opening bracket wasn't found%40s\n", "[error]");
-        kill_tree(node);
+        kill_tree(body);
         return NULL;
     }
+    TOK_SHIFT();
+
+    node_t *expr = pars_E();
+    if (!expr)
+    {
+        kill_tree(body);
+        return NULL;
+    }
+    
+    if (tkns->data_type != OP || tkns->data.command != CL_BR)
+    {
+        LOG(">>> syntax error: closing bracket wasn't found%40s\n", "[error]");
+        kill_tree(body);
+        kill_tree(expr);
+        return NULL;
+    }
+    TOK_SHIFT();
 
     if (tkns->data_type != OP || !(tkns->data.command == IF || tkns->data.command == WHILE))
     {
         LOG(">>> syntax error: if/while operator wasn't found...%40s\n", "[error]");
-        kill_tree(node);
+        kill_tree(body);
+        kill_tree(expr);
         return NULL;
     }
-    node->data.command = tkns->data.command;
+    node_t *node = create_node(tkns->data.command, OP, 2, body, expr);
     TOK_SHIFT(); 
     
     return node;
@@ -234,24 +231,14 @@ node_t *pars_cond()
 node_t *pars_variable()
 {
     LOG("> creating an variable:\n");
-    if ((tkns->data_type != COMMAND) || (tkns->data.command != STR_END))
-    {
-        LOG("string start wasn't found, returning NULL\n");
-        return NULL;
-    }
-    TOK_SHIFT();
 
-    node_t *node        = pars_name();
-    if (!node)
-        return NULL;
-
-    node->data_type = VAR;   
+    //node->data_type = VAR;   
 
     if (tkns->data_type == OP && tkns->data.command == VAR_END)
     {
         LOG("a variable without assignment was found\n");
         TOK_SHIFT();
-        return node;
+        return NULL;
     }
     
     LOG("> creating expression and operator:\n");
@@ -261,13 +248,91 @@ node_t *pars_variable()
     {
         LOG("> variable with assignment found\n");
         TOK_SHIFT();
-        return create_node((unsigned char)E, OP, 2, node, expr);
+        return create_node((unsigned char)E, OP, 1, expr);
     }
 
     LOG("syntax error, assign operator wasn't found%40s\n", "[error]");
-    kill_tree(node);
     kill_tree(expr);
     return NULL;
+}
+
+node_t *pars_func_call()
+{
+    if ((tkns->data_type != COMMAND) || (tkns->data.command != STR_END))
+    {
+        LOG("string start wasn't found, returning NULL\n");
+        return NULL;
+    }
+    TOK_SHIFT();
+    LOG("> creating function call\n");
+
+    node_t *func = pars_name();
+    if (!func)
+        return NULL;
+
+    node_t *args = pars_args();
+    if (!args)
+    {
+        func->data_type = VAR;
+        node_t *var = pars_variable();
+        if (!var)
+            return func;
+
+        _ADD_B(var, func);
+        LOG("> variable created\n");
+        return var;
+    }
+
+    func->data_type = FUNC;
+    _ADD_B(func, args);
+
+    LOG("> function call created\n");
+    return func;
+}
+
+node_t *pars_args()
+{
+    if (tkns->data_type != OP || tkns->data.command != OP_BR)
+    {
+        LOG("> opening bracket not found\n");
+        return NULL;
+    }
+    TOK_SHIFT();
+
+    node_t *node = create_node((unsigned char)ARGS, CONN, 0);
+    do
+    {
+        node_t *arg = pars_name();
+        if (!arg)
+        {
+            LOG(">>> arguments not found\n");
+            break;
+        }
+        arg->data_type = VAR;
+        _ADD_B(node, arg);
+
+        if (tkns->data_type == OP && tkns->data.command == ZAP)
+        {
+            LOG("> ZAP was found\n");
+            TOK_SHIFT();
+        }
+        else
+        {
+            LOG("> ZAP not found\n");
+            break;
+        }
+    } while (1);
+    
+    if (tkns->data_type != OP || tkns->data.command != CL_BR)
+    {
+        LOG(">>> syntax error: closing bracket not found%40s\n", "[error]");
+        kill_tree(node);
+        return NULL;
+    }
+    LOG("> closing bracket was found\n");
+    TOK_SHIFT();
+    
+    return node;
 }
 
 node_t *pars_name()
