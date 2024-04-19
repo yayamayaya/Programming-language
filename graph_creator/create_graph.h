@@ -47,7 +47,7 @@ enum PNG_NAMES
 
 int create_gparh_code(node_t *node, const int PNG_TYPE);
 void print_png(const int PNG_TYPE);
-//void clear_all_png();
+void clear_all_png();
 int go_through_tree(FILE *gcode, node_t *node);
 
 #endif

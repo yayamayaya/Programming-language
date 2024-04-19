@@ -27,11 +27,16 @@ void print_png(const int PNG_TYPE)
 {
     static int png_number = 0;
     char png_call[200] = {0};
+
     switch (PNG_TYPE)
     {
     case EXPRESSION:
         snprintf(png_call, sizeof(png_call), "%s%s", DOT_CALL, "syntax_tree.png");
         break;
+    /*case STAGE:
+        snprintf(png_call, sizeof(png_call), "%sgraph_creator/stages/picture%d.png", picture_num);
+        picture_num++;
+        break;*/
     default:
         LOG(">>> fatal error occured while png printing");
         break;
@@ -43,13 +48,10 @@ void print_png(const int PNG_TYPE)
     return;
 }
 
-/*void clear_all_png()
+void clear_all_png()
 {
-    system("rm -f graph/operations");
-    system("rm -f graph/diff_operations");
-    system("rm -f differentiated_EXPRETIONession.png");
-    system("rm -f EXPRETIONession.png");
-}*/
+    system("rm -f syntax_tree.png");
+}
 
 int go_through_tree(FILE *gcode, node_t *node)
 {

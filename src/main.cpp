@@ -7,6 +7,7 @@ int main(int argc, char const *argv[])
     assert(argc > 1);
     assert(argv[argc - 1]);
     _OPEN_LOG("logs/main.log");
+    clear_all_png();
 
     token_t *token_arr = {0};
     LOG("-----------------------------------TOKENIZATION---------------------\n");
@@ -27,7 +28,7 @@ int main(int argc, char const *argv[])
     }
 
     LOG("\n\n--------------------------------CREATING GRAPH------------------\n");
-    create_gparh_code(root, EXPR);
+    _CREATE_GRAPH(root, EXPR);
     
     LOG("\n\n--------------------------------COMPILING-----------------------\n");
     error = compiler(root);

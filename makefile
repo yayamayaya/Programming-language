@@ -1,4 +1,4 @@
-d = -Wall -g -DDEBUG
+d = -Wall -g -DDEBUG -DGRAPH
 
 t = src/include/tokenizator.h
 n = src/include/n_node.h
