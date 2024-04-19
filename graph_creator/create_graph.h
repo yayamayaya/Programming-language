@@ -28,7 +28,9 @@
 #define GRAPH_VAR_NODE      "\tnode_num%p [shape = \"record\", color=\"#70578a\", label = \"{%s | {VAR | %p | %db}}\"];\n", \
                                                                                 node, node->data.string, node, node->branch_number
 #define GRAPH_CONN_NODE     "\tnode_num%p [shape = \"record\", color=\"#003366\", label = \"{%#04x | {CONN | %p | %db}}\"];\n", \
-                                                                                node, node->data.command, node, node->branch_number                                                                          
+                                                                                node, node->data.command, node, node->branch_number   
+#define GRAPH_FUNC_NAME_NODE      "\tnode_num%p [shape = \"record\", color=\"#001296\", label = \"{%s | {FUNC | %p | %db}}\"];\n", \
+                                                                                node, node->data.string, node, node->branch_number
 
 #define DOT_CALL    "dot graph_creator/graphcode.txt -Tpng -o"
 
