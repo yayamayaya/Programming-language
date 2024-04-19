@@ -25,8 +25,8 @@ efcpp = src/compiler/expr_func.cpp
 vfcpp = src/compiler/variable_func.cpp
 arcpp = src/compiler/arithm_op.cpp
 
-all: file_reader.o tokenizator.o node_func.o main.o commands.o parser.o create_graph.o compiler.o compile_body.o expr_func.o var_func.o arithm.o
-	g++ -Wall -o bin/language bin/file_reader.o bin/tokenizator.o bin/node_func.o bin/main.o bin/commands.o bin/parser.o bin/create_graph.o bin/compiler.o bin/compile_body.o bin/expr_func.o bin/var_func.o bin/arithm.o
+all: file_reader.o tokenizator.o node_func.o main.o commands.o parser.o create_graph.o compiler.o compile_body.o expr_func.o var_func.o arithm.o ../stack/bin/functions.o ../stack/bin/global.o
+	g++ -Wall -o bin/language bin/file_reader.o bin/tokenizator.o bin/node_func.o bin/main.o bin/commands.o bin/parser.o bin/create_graph.o bin/compiler.o bin/compile_body.o bin/expr_func.o bin/var_func.o bin/arithm.o ../stack/bin/global.o
 
 tree_test:	node_func.o tree_t.o create_graph.o
 	g++ -Wall -o bin/tree_test bin/node_func.o bin/create_graph.o bin/tree_t.o
