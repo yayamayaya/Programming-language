@@ -26,11 +26,6 @@ command_t commands[COMMANDS_NUMBER] =
 
     {IF, "if", 2},
     {WHILE, "while", 5},
-
-    {RET, "sygeide", 7},
-    {PTR_VAL, "Pavlodar,brat", 13},
-    {INCL, "include", 7},
-
-
-
+    {RET, "sygeide", 7}
 };
+    //{INCL, "include", 7},

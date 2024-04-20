@@ -1,7 +1,7 @@
 #ifndef COMMANDS
 #define COMMANDS
 
-#define COMMANDS_NUMBER 24
+#define COMMANDS_NUMBER 22
 
 enum COMMANDS
 {
@@ -25,22 +25,16 @@ enum COMMANDS
     OP_F_BR = 0x03,
     CL_F_BR = 0x04,        
     STR_END = 0x07,
+    ZAP     = 0x08,
 
     IF      = 0x11,
     WHILE   = 0x12,
+    RET     = 0x13,
 
     BODY    = 0x0B,
     EXPR    = 0x0E,
     ARGS    = 0x0A,
     PROGRAMM = 0x0C,
-
-    RET,
-    PTR_VAL,
-
-
-
-    ZAP,
-    INCL,
 };
 
 typedef struct
