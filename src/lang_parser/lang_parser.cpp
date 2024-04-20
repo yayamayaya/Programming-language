@@ -58,6 +58,19 @@ E           - стандартный парсер выражений из диф
 func_call   ::= "eu, " name {args | variable}
 args        ::= '('name [, args]')'
 name        ::= [а-я, А-Я]
+
+4,5 итерация:
+code        ::= {func}+$
+func        ::= name {variable | {args body}}
+body        ::= '{'STR+'}'
+STR         ::= cond | func_call | E | ret
+cond        ::= body '('E')' {"if" | "while"}
+variable    ::= E "="
+E           - стандартный парсер выражений из дифф + лог. операции + вызов функций
+func_call   ::= "eu, " name {args | variable}
+args        ::= '('name [, args]')'
+name        ::= [а-я, А-Я]
+ret         ::= "sygeide" E
 */
 
 node_t *pars_STR();
@@ -131,13 +144,37 @@ node_t *pars_func()
     return func;
 }
 
+node_t *pars_ret()
+{
+    if (tkns->data_type != COMMAND || tkns->data.command != RET)
+    {
+        LOG("> return not found\n");
+        return NULL;
+    }
+    TOK_SHIFT();
+
+    node_t *expr = pars_E();
+    if (!expr)
+        return NULL;
+    
+    return create_node(RET, OP, 1, expr);
+}
+
 node_t *pars_STR()
 {
-    node_t *node = pars_cond();
+    node_t *node = pars_ret();
+    if (node)
+        return node;
+    
+    node = pars_cond();
     if (node)
         return node;
     
     node = pars_func_call();
+    if (node)
+        return node;
+    
+    node = pars_E();
     if (node)
         return node;
 
@@ -352,7 +389,9 @@ node_t *pars_name()
 node_t *pars_E()
 {
     node_t *node = pars_sum();
-
+    if (!node)
+        return NULL;
+    
     while (tkns->data_type == COMMAND && (LOG_E <= tkns->data.command && tkns->data.command <= LOG_BE))
     {
         unsigned char command = tkns->data.command;
@@ -411,9 +450,6 @@ node_t *pars_number()
 {
     node_t *node = NULL;
 
-    /*if (token_arr[*pos].data_type == command)
-        node = write_command(token_arr, pos);
-    else */
     if (tkns->data_type == COMMAND && tkns->data.command == OP_BR)
     {
         TOK_SHIFT();
@@ -438,10 +474,22 @@ node_t *pars_number()
     {
         LOG("> some string founded\n");
         node = pars_name();
-        node->data_type = VAR;
+        node_t *args = pars_args();
+        if (!args)
+        {
+            node->data_type = VAR;
+            LOG("> variable use found\n");
+        }
+        else
+        {
+            node->data_type = FUNC;
+            LOG("> func call in expr found\n");
+            _ADD_B(node, args);
+        }
+        
     }
     else
-        LOG(">>> syntax error, parser couldn't parse a number%40s\n", "[error]");
+        LOG("> parser couldn't parse a number\n");
 
     return node;
 }
