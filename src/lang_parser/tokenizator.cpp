@@ -27,6 +27,14 @@ int tokenize(token_t **tokens, const char *file_loc)
     int token_number = 0;
     for (int pos = 0; pos < file_size;)
     {
+        while (isspace(buff[pos]) && pos != file_size)
+        {
+            pos++;
+            LOG("> current pos: %d\n", pos);
+        }
+        if (pos == file_size)
+            break;
+    
         token_arr[token_number] = detect_token(buff, &pos);
         if ((token_arr[token_number].data_type == YET_TO_DET) && (token_arr[token_number].data.string == NULL))
         {
@@ -75,12 +83,6 @@ token_t detect_token(char *buff, int *pos)
 {
     token_t token = {0};
 
-    while (isspace(buff[*pos]))
-    {
-        (*pos)++;
-        LOG("> current pos: %d\n", *pos);
-    }
-
     double number_holder = 0;
     int n = 0;
     
@@ -97,7 +99,7 @@ token_t detect_token(char *buff, int *pos)
     for (int i = 0; i < COMMANDS_NUMBER; i++)
         if (!strncmp(buff + *pos, commands[i].cmd_name, commands[i].cmd_length))
         {
-            LOG("> command %s found: %d\n", commands[i].cmd_name, commands[i].cmd);
+            LOG("> command %s found: %#04X\n", commands[i].cmd_name, commands[i].cmd);
             token.data.command = commands[i].cmd;
             token.data_type = COMMAND;
             (*pos) += commands[i].cmd_length;
