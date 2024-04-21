@@ -10,27 +10,15 @@ int expr_in_asm(Stack <variable_t> *vars, node_t *node)
     
     LOG("node %p was given for calculation\n", node);
 
-    if (node->data_type == NUM)
+    int error = 0;
+    switch (node->data_type)
     {
+    case NUM:
         LOG("> number %.2lf was found and will be pushed in stack\n", node->data.number);
         fprintf(asm_file, "push %lf\n", node->data.number);
         return 0;
-    }
-    if (node->data_type == VAR)
-    {
-        variable_t *var = find_var(vars, node->data.string);
-        if (!var)
-        {
-            LOG(">>> variable wasn't defined in expression%40s\n", "[error]");
-            return 1;
-        }
 
-        LOG("> variable %s was found on the address %d and will be pushed in stack\n", var->var, var->rel_address);
-        fprintf(asm_file, "push [rbp+%d]\n", var->rel_address);
-        return 0;
-    }
-    if (node->data_type == OP)
-    {
+    case OP:
         if (node->branch_number != 2)
         {
             LOG(">>> fatal error, arithmetic OP has more than 2 nodes%40s\n", "[error]");
@@ -46,11 +34,24 @@ int expr_in_asm(Stack <variable_t> *vars, node_t *node)
             return 1;
             
         return 0;
+    
+    case VAR:
+        error = push_var_in_asm(vars, node->data.string);
+        return 0;
+    case FUNC:
+        LOG("> function call in expression was found\n");
+        error = call_func(vars, node);
+
+        fprintf(asm_file, "push dx\n");
+        return error;
+    case CONN:
+        if (node->data.command == EXPR)
+            return expr_in_asm(vars, node->branches[0]);
+        
+    
+    default:
+        break;
     }
-    if (node->data_type == CONN && node->data.command == EXPR)
-        return expr_in_asm(vars, node->branches[0]);
-    
-    
 
     LOG(">>> fatal error: unacceptable data type of the node for the expression%40s\n", "[error]");
     return 1;
