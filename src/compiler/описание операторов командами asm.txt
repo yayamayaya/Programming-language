@@ -26,3 +26,21 @@ mov [rbp+0], 211
 
 var         == x;
 rel_address == 0;
+
+
+func (arg1)
+{
+    return arg1 + 1;
+}
+
+func:
+mov rbp,20
+
+push [rbp+0]
+push 1
+add
+
+pop dx
+
+mov rbp,0
+ret
