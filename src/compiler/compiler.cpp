@@ -10,6 +10,8 @@
 
 FILE *asm_file = NULL;
 int free_mem_ptr = 0;
+Stack <variable_t> *global_vars = NULL;
+Stack <func_t> *funcs = NULL;
 
 int compiler(node_t *root)
 {
@@ -30,19 +32,24 @@ int compiler(node_t *root)
         return ASM_F_OPEN_ERR;
     }
 
-    LOG("> initializing memory array\n");
-    Stack <variable_t> vars = {};
-    vars.stackCtor(10, "logs/stack.log");
+    LOG("> creating functions and global variables stacks\n");
+    Stack <func_t> functions = {};
+    funcs = &functions;
+    funcs->stackCtor(10, "logs/func_stack.log");
 
-    LOG("> compiling body\n");
-    error = compile_body(&vars, root);
+    Stack <variable_t> gl_vars = {};
+    global_vars = &gl_vars;
+    global_vars->stackCtor(10, "logs/global_var.log");
+
+    LOG("> compiling programm\n");
+    error = compile_func(root);
     if (error)
         LOG("translation error occured%40s\n", "[error]");
     else
         LOG(">> compilation successfull\n");
 
-    
-    vars.stackDtor();
+    global_vars->stackDtor();
+    funcs->stackDtor();
     fclose(asm_file);
     asm_file = NULL;
 
