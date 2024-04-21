@@ -2,6 +2,7 @@
 #define STRUCTS
 
 #include <stdio.h>
+#include "../../../stack/src/stack.h"
 
 typedef struct
 {
@@ -17,16 +18,15 @@ typedef struct
 
 typedef struct
 {
-    variable_t *vars;
-    int var_num;
-} variables;
-
-typedef struct
-{
-    int *loc_mems_size;
-    int loc_mems_number;
-} local_memory;
+    const char *func;
+    int arg_num;
+    int rbp;
+} func_t;
 
 extern int free_mem_ptr;
 extern FILE *asm_file;
+extern Stack <variable_t> *global_vars;
+extern Stack <func_t> *funcs;
+extern int return_flag;
+
 #endif
