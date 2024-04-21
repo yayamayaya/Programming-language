@@ -6,7 +6,7 @@ int assign_variable(Stack <variable_t> *vars, node_t *node)
     assert(node);
     assert(node->data.command == E);
     assert(vars);
-    if (node->branches[L]->data_type != VAR)
+    if (node->branches[R]->data_type != VAR)
     {
         LOG(">>> language parser error occured: the left branch of assign command is NOT an variable%40s\n", "[error]");
         return ASS_L_NODE_ERR;
@@ -28,7 +28,7 @@ int assign_variable(Stack <variable_t> *vars, node_t *node)
     }
     fprintf(asm_file, "pop [rbp+%d]\n\n", free_mem_ptr);
     
-    create_variable(vars, node->branches[L]);
+    create_variable(vars, node->branches[R]);
 
     return 0;
 }
@@ -54,6 +54,13 @@ variable_t *find_var(Stack <variable_t> *vars, const char *var_name)
 {
     assert(vars);
 
+    for (int i = 0; i < global_vars->getStackSize(); i++)
+        if (!strcmp((global_vars->getDataOnPos(i)).var, var_name))
+        {
+            LOG("> global variable %s was found\n", global_vars->getDataOnPos(i).var);
+            return global_vars->getDataPtr() + i;
+        }
+
     for (int i = 0; i < vars->getStackSize(); i++)
         if (!strcmp((vars->getDataOnPos(i)).var, var_name))
         {
@@ -63,6 +70,28 @@ variable_t *find_var(Stack <variable_t> *vars, const char *var_name)
     
     LOG("> variable wasn't found\n");
     return NULL;
+}
+
+int push_var_in_asm(Stack <variable_t> *vars, const char *var_name)
+{
+    for (int i = 0; i < global_vars->getStackSize(); i++)
+        if (!strcmp((global_vars->getDataOnPos(i)).var, var_name))
+        {
+            LOG("> global variable %s was found\n", global_vars->getDataOnPos(i).var);
+            fprintf(asm_file, "push [%d]\n", (global_vars->getDataOnPos(i)).rel_address);
+            return 0;
+        }
+    
+    variable_t *lcl_var = find_var(vars, var_name);
+    if (lcl_var)
+    {
+        LOG("> local variable %s was found on the address %d and will be pushed in stack\n", lcl_var->var, lcl_var->rel_address);
+        fprintf(asm_file, "push [rbp+%d]\n", lcl_var->rel_address);
+        return 0;
+    }
+    
+    LOG("> variable wasn't found\n");
+    return VAR_DEF_NOT_F_ERR;
 }
 
 void var_dump(Stack <variable_t> *vars)
