@@ -2,6 +2,10 @@
 
 int make_body_command(Stack <variable_t> *vars, node_t *node);
 void free_local_mem(Stack <variable_t> *vars, int var_num);
+void free_stk_frame(Stack <variable_t> *vars);
+
+int first_lcl_var_pos = 0;
+int last_lcl_var_pos = 0;
 
 int compile_body(Stack <variable_t> *vars, node_t *body_root)
 {
@@ -13,8 +17,10 @@ int compile_body(Stack <variable_t> *vars, node_t *body_root)
         LOG("fatal error occured, body root is not a body node%40s\n", "[error]");
         return BODY_IS_NOT_NODE_ERR;
     }
+    first_lcl_var_pos = 0;
+    last_lcl_var_pos = 0;
 
-    int first_lcl_var_pos = free_mem_ptr;
+    first_lcl_var_pos = free_mem_ptr;
     for (int i = 0; i < body_root->branch_number; i++)
     {
         int error = make_body_command(vars, body_root->branches[i]);
@@ -25,9 +31,11 @@ int compile_body(Stack <variable_t> *vars, node_t *body_root)
         }
     }
     LOG("> body was read successfully\n");
-    int last_lcl_var_pos = free_mem_ptr;
+    last_lcl_var_pos = free_mem_ptr;
 
     var_dump(vars);
+    
+
     free_local_mem(vars, last_lcl_var_pos - first_lcl_var_pos);
 
     return 0;
@@ -89,6 +97,20 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
             fprintf(asm_file, "\nL%p:\n", node);
             break;
 
+        case RET:
+            LOG("> return was found\n");
+            error = expr_in_asm(vars, node->branches[0]);
+            
+            fprintf(asm_file, "pop dx\n\n");
+
+            free_stk_frame(vars);
+            fprintf(asm_file, "mov rbp,ax\n");
+            fprintf(asm_file, "mov, ax,0\n");
+            fprintf(asm_file, "ret\n\n");
+            return_flag = 1;
+
+            break;
+
         default:
             LOG(">>> undefined compilation operator, yet to define%40s\n", "[error]");
             return FATAL_ERR;
@@ -126,6 +148,10 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
             break;
         }
         break;
+    
+    case FUNC:
+        error = call_func(vars, node);
+        break;
 
     default:
         LOG(">>> fatal error occured: couldn't detect node data type%40s\n", "[error]");
@@ -149,9 +175,22 @@ void free_local_mem(Stack <variable_t> *vars, int var_num)
         free_mem_ptr--;
     }
     
+    fprintf(asm_file, "\n");
     LOG("> current variables number: %d\n", vars->getStackSize());
     var_dump(vars);
 
     LOG("> memory was free'd successfully\n");
+    return;
+}
+
+void free_stk_frame(Stack <variable_t> *vars)
+{
+    assert(vars);
+
+    LOG("> freeing all memory in stk_frame:\n");
+    for (int i = 0; i < vars->getStackSize(); i++)
+        fprintf(asm_file, "mov [rbp+%d], 0\n", i);
+    fprintf(asm_file, "\n");
+
     return;
 }
