@@ -26,6 +26,7 @@ command_t commands[COMMANDS_NUMBER] =
 
     {IF, "if", 2},
     {WHILE, "while", 5},
-    {RET, "sygeide", 7}
+    {RET, "sygeide", 7},
+    {PRINT, "print", 5},
 };
     //{INCL, "include", 7},
