@@ -1,4 +1,4 @@
-d = -Wall -g -DDEBUG -DGRAPH
+d = -Wall -g -DDEBUG
 
 t = src/include/tokenizator.h
 n = src/include/n_node.h
@@ -12,6 +12,7 @@ b = src/include/body.h
 ef = src/include/expr_func.h
 vf = src/include/variable_func.h
 ar = src/include/arithm.h
+f = src/include/comp_func.h
 
 tcpp = src/lang_parser/tokenizator.cpp
 ncpp = src/n_tree_func/n_node.cpp
@@ -24,9 +25,10 @@ cbcpp = src/compiler/comp_body.cpp
 efcpp = src/compiler/expr_func.cpp
 vfcpp = src/compiler/variable_func.cpp
 arcpp = src/compiler/arithm_op.cpp
+fcpp = src/compiler/comp_func.cpp
 
-all: file_reader.o tokenizator.o node_func.o main.o commands.o parser.o create_graph.o compiler.o compile_body.o expr_func.o var_func.o arithm.o ../stack/bin/functions.o ../stack/bin/global.o
-	g++ -Wall -o bin/language bin/file_reader.o bin/tokenizator.o bin/node_func.o bin/main.o bin/commands.o bin/parser.o bin/create_graph.o bin/compiler.o bin/compile_body.o bin/expr_func.o bin/var_func.o bin/arithm.o ../stack/bin/global.o
+all: file_reader.o tokenizator.o node_func.o main.o commands.o parser.o create_graph.o compiler.o compile_body.o expr_func.o var_func.o arithm.o ../stack/bin/functions.o ../stack/bin/global.o funcs.o
+	g++ -Wall -o bin/language bin/file_reader.o bin/tokenizator.o bin/node_func.o bin/main.o bin/commands.o bin/parser.o bin/create_graph.o bin/compiler.o bin/compile_body.o bin/expr_func.o bin/var_func.o bin/funcs.o bin/arithm.o ../stack/bin/global.o
 
 tree_test:	node_func.o tree_t.o create_graph.o
 	g++ -Wall -o bin/tree_test bin/node_func.o bin/create_graph.o bin/tree_t.o
@@ -71,9 +73,12 @@ var_func.o:	$(vfcpp) $(vf)
 arithm.o: $(arcpp) $(ar)
 	g++ $(d) -c $(arcpp) -o bin/arithm.o
 
+funcs.o: $(fcpp) $(f)
+	g++ $(d) -c $(fcpp) -o bin/funcs.o
+
 rtt:
 	valgrind bin/token_test
 rm:
-	valgrind --leak-check=full --leak-check=full --show-leak-kinds=all bin/language tests/test_programm.txt
+	valgrind --leak-check=full --leak-check=full bin/language tests/test_programm.txt
 rtrt:
 	valgrind bin/tree_test
