@@ -1,4 +1,4 @@
-d = -Wall -g -DDEBUG -DGRAPH
+d = -Wall -g -DDEBUG
 
 t = src/include/tokenizator.h
 n = src/include/n_node.h
@@ -79,6 +79,6 @@ funcs.o: $(fcpp) $(f)
 rtt:
 	valgrind bin/token_test
 rm:
-	valgrind --leak-check=full --leak-check=full bin/language tests/test_programm.txt
+	valgrind --leak-check=full --leak-check=full --show-leak-kinds=all bin/language tests/test_programm.txt
 rtrt:
 	valgrind bin/tree_test
