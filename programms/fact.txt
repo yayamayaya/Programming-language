@@ -1,0 +1,14 @@
+Elbasy pavlodar kalasy
+kraba
+    sygeide kotagym pavlodar 5 kalasy
+nakin'
+
+kotagym pavlodar san kalasy
+kraba
+    kraba
+        sygeide 1
+    nakin' pavlodar san loge 1 kalasy etkeizenba
+
+    eu, san san - 1 bolad
+    sygeide kotagym pavlodar san kalasy * pavlodar san + 1 kalasy
+nakin'
