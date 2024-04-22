@@ -188,7 +188,7 @@ int call_func(Stack <variable_t> *vars, node_t *node)
 
     for (int i = 0; i < function->arg_num; i++)
     {
-        int error = push_var_in_asm(vars, node->branches[0]->branches[i]->data.string);
+        int error = expr_in_asm(vars, node->branches[0]->branches[i]);
         if (error)
         {
             LOG("> variable were not defined in this scope%40s\n", "[error]");
@@ -209,7 +209,7 @@ func_t *find_func(const char *func_name)
     for (int i = 0; i < funcs->getStackSize(); i++)
         if (!strcmp((funcs->getDataOnPos(i)).func, func_name))
         {
-            LOG("> variable %s was found\n", funcs->getDataOnPos(i).func);
+            LOG("> function %s was found\n", funcs->getDataOnPos(i).func);
             return funcs->getDataPtr() + i;
         }
 
