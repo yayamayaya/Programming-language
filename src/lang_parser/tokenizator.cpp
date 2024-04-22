@@ -147,7 +147,7 @@ void token_dump(FILE* out, token_t *tokens, int token_num)
     for (int i = 0; i < token_num; i++)
     {
         fprintf(out, "%d)\n", i + 1);
-        fprintf(out, "> DATA:           ");
+        fprintf(out, "> <(%p)> DATA:           ", tokens + i);
         switch (tokens[i].data_type)
         {
         case NUM:
