@@ -8,6 +8,7 @@ int main(int argc, char const *argv[])
     assert(argv[argc - 1]);
     _OPEN_LOG("logs/main.log");
     clear_all_png();
+    system("rm -f data/code.txt");
 
     token_t *token_arr = {0};
     LOG("-----------------------------------TOKENIZATION---------------------\n");
