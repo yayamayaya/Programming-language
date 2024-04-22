@@ -146,7 +146,7 @@ int add_branch(node_t *parent_node, node_t *branch)
     node_t **branch_holder = (node_t **)realloc(parent_node->branches, parent_node->branch_number * sizeof(node_t *));
     if (!branch_holder)
     {
-        LOG(">> couldn't add another branch to node, memory not reallocated%40s\n", "[error]");
+        LOG(">>> couldn't add another branch to node, memory not reallocated%40s\n", "[error]");
         return NODE_MEM_ALC_ERR;
     }
 
