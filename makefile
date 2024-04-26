@@ -1,4 +1,5 @@
-d = -Wall -g -DDEBUG
+d = -Wall -g -DDEBUG -DGRAPH
+#d = -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-loop-optimizations -Wc++14-compat -Wmissing-declarations -Wcast-align -Wcast-qual -Wchar-subscripts -Wconditionally-supported -Wconversion -Wctor-dtor-privacy -Wempty-body -Wfloat-equal -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wformat=2 -Winline -Wlogical-op -Wnon-virtual-dtor -Wopenmp-simd -Woverloaded-virtual -Wpacked -Wpointer-arith -Winit-self -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=2 -Wsuggest-attribute=noreturn -Wsuggest-final-methods -Wsuggest-final-types -Wsuggest-override -Wswitch-default -Wswitch-enum -Wsync-nand -Wundef -Wunreachable-code -Wunused -Wuseless-cast -Wvariadic-macros -Wno-literal-suffix -Wno-missing-field-initializers -Wno-narrowing -Wno-old-style-cast -Wno-varargs -Wstack-protector -fcheck-new -fsized-deallocation -fstack-protector -fstrict-overflow -flto-odr-type-merging -fno-omit-frame-pointer -Wlarger-than=8192 -Wstack-usage=8192 -pie -fPIE -Werror=vla -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
 t = src/include/tokenizator.h
 n = src/include/n_node.h
@@ -20,12 +21,12 @@ mcpp = src/main.cpp
 ccpp = src/commands.cpp
 gcpp = graph_creator/create_graph.cpp
 pcpp = src/lang_parser/lang_parser.cpp
-cmcpp = src/compiler/compiler.cpp
-cbcpp = src/compiler/comp_body.cpp
-efcpp = src/compiler/expr_func.cpp
-vfcpp = src/compiler/variable_func.cpp
-arcpp = src/compiler/arithm_op.cpp
-fcpp = src/compiler/comp_func.cpp
+cmcpp = src/translator/compiler.cpp
+cbcpp = src/translator/comp_body.cpp
+efcpp = src/translator/expr_func.cpp
+vfcpp = src/translator/variable_func.cpp
+arcpp = src/translator/arithm_op.cpp
+fcpp = src/translator/comp_func.cpp
 
 all: file_reader.o tokenizator.o node_func.o main.o commands.o parser.o create_graph.o compiler.o compile_body.o expr_func.o var_func.o arithm.o ../stack/bin/functions.o ../stack/bin/global.o funcs.o
 	g++ -Wall -o bin/language bin/file_reader.o bin/tokenizator.o bin/node_func.o bin/main.o bin/commands.o bin/parser.o bin/create_graph.o bin/compiler.o bin/compile_body.o bin/expr_func.o bin/var_func.o bin/funcs.o bin/arithm.o ../stack/bin/global.o
@@ -37,8 +38,8 @@ token_test:	token_test.o file_reader.o
 	g++ -Wall -o bin/token_test bin/file_reader.o bin/token_test.o
 
 
-file_reader.o:	/home/alexandr/Документы/common/file_reading/file_reader.cpp /home/alexandr/Документы/common/file_reading/file_reader.h
-	g++ $(d) -c /home/alexandr/Документы/common/file_reading/file_reader.cpp -o bin/file_reader.o
+file_reader.o:	/home/alexandr/Документы/common/file_reading/src/file_reading.cpp /home/alexandr/Документы/common/file_reading/src/file_reading.h
+	g++ $(d) -c /home/alexandr/Документы/common/file_reading/src/file_reading.cpp -o bin/file_reader.o
 
 tokenizator.o: $(tcpp) $(t)
 	g++ $(d) -c $(tcpp) -o bin/tokenizator.o
@@ -70,15 +71,20 @@ expr_func.o: $(efcpp) $(ef)
 var_func.o:	$(vfcpp) $(vf)
 	g++ $(d) -c $(vfcpp) -o bin/var_func.o
 
+var_func.s: $(vfcpp) $(vf)
+	g++ $(d) -c $(vfcpp) -S var_func.s
+
 arithm.o: $(arcpp) $(ar)
 	g++ $(d) -c $(arcpp) -o bin/arithm.o
 
 funcs.o: $(fcpp) $(f)
 	g++ $(d) -c $(fcpp) -o bin/funcs.o
 
-rtt:
-	valgrind bin/token_test
-rm:
-	valgrind --leak-check=full --leak-check=full --show-leak-kinds=all bin/language tests/test_programm.txt
-rtrt:
-	valgrind bin/tree_test
+rt:
+	valgrind --leak-check=full --leak-check=full --show-leak-kinds=all bin/language programms/test.txt
+
+rfibo:
+	valgrind --leak-check=full --leak-check=full --show-leak-kinds=all bin/language programms/fibo.txt
+
+rfact:
+	valgrind --leak-check=full --leak-check=full --show-leak-kinds=all bin/language programms/fact.txt
