@@ -1,42 +1,43 @@
 #include "../include/arithm.h"
 
-// Сделать dsl, проверку на ноль
+void turn_op_to_num(node_t *node, double number);
 
 int calc_consts(node_t *node)
 {
-    static node_t *root = node;
-    assert(root);
+    assert(node);
 
     for (int i = 0; i < node->branch_number; i++)
         calc_consts(node->branches[i]);
 
     if (node->data_type == OP && node->data.command & AR_OP)
     {
-        if (node->branch_number != 2)
-        {
-            LOG(">>> arithmetic operator have %d branches, instead of 2%40s\n", node->branch_number, "[error]");
-            return AR_OP_BR_ERR;
-        }
+        _CHECK_NODE_NUM(2);
 
         if (node->branches[L]->data_type == NUM && node->branches[R]->data_type == NUM)
         {
             double result = make_operation(node->branches[L]->data.number, node->branches[R]->data.number, node->data.command);
 
-            kill_tree(node->branches[L]);
-            kill_tree(node->branches[R]);
-            free(node->branches);
-            node->branches = NULL;
-            node->branch_number = 0;
-            node->data_type = NUM;
-            node->data.number = result;
-
+            turn_op_to_num(node, result);
             LOG("> operation was done, operation node was translated to number node\n");
             return 0;
         }
     }
-    
-    //LOG("> this branch don't have any arithm. operations\n");
     return 0;
+}
+
+void turn_op_to_num(node_t *node, double number)
+{
+    assert(node);
+
+    kill_tree(node->branches[L]);
+    kill_tree(node->branches[R]);
+    free(node->branches);
+    node->branches = NULL;
+    node->branch_number = 0;
+    node->data_type = NUM;
+    node->data.number = number;
+
+    return;
 }
 
 double make_operation(double first_arg, double second_arg, const unsigned char op)
@@ -46,20 +47,28 @@ double make_operation(double first_arg, double second_arg, const unsigned char o
 
     switch (op)
     {
-    case PLUS:      result = first_arg + second_arg;        break;
-    case MINUS:     result = first_arg - second_arg;        break;
-    case STAR:      result = first_arg * second_arg;        break;
-    case SLASH:     result = first_arg / second_arg;        break;
+    case PLUS:      _ARITHM_OP(+);
+    case MINUS:     _ARITHM_OP(-);
+    case STAR:      _ARITHM_OP(*);
+    case LOG_E:     _ARITHM_OP(==);
+    case LOG_NE:    _ARITHM_OP(!=);
+    case LOG_A:     _ARITHM_OP(>);
+    case LOG_AE:    _ARITHM_OP(>=);
+    case LOG_B:     _ARITHM_OP(<);
+    case LOG_BE:    _ARITHM_OP(<=);
+
+    case SLASH:     
+        if (!second_arg)
+        {
+            LOG("[error]>>> cannot divide into 0\n");
+            return 0;
+        }
+        _ARITHM_OP(/);
+
     case POW:       result = pow(first_arg, second_arg);    break;
-    case LOG_E:     result = first_arg == second_arg;       break;
-    case LOG_NE:    result = first_arg != second_arg;       break;
-    case LOG_A:     result = first_arg > second_arg;        break;
-    case LOG_AE:    result = first_arg >= second_arg;       break;
-    case LOG_B:     result = first_arg < second_arg;        break;
-    case LOG_BE:    result = first_arg <= second_arg;       break;
 
     default:
-        LOG(">>> fatal error in making an operation%40s\n", "[error]");
+        LOG("[error]>>> fatal error in making an operation\n");
         return 0;
     }
 
