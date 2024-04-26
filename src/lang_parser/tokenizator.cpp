@@ -4,7 +4,8 @@
 
 token_t *token_realloc(token_t *token_arr, int arr_size);
 token_t detect_token(char *buff, int *pos);
-void token_dump(FILE *out, token_t *tokens, int token_num);
+
+//TO DO желательно переделать
 
 int tokenize(token_t **tokens, const char *file_loc)
 {
@@ -12,9 +13,12 @@ int tokenize(token_t **tokens, const char *file_loc)
 
     char *buff = NULL;
     int file_size = 0;
-    int error = read_file(&buff, &file_size, file_loc);
+    int error = file_read(&buff, &file_size, file_loc);
     if (error)
+    {
+        free(buff);
         return error;
+    }
     
     int token_arr_size = INITIAL_TOKEN_ARR_SIZE;
     token_t *token_arr = (token_t *)calloc(token_arr_size, sizeof(token_t));
@@ -167,7 +171,7 @@ void token_dump(FILE* out, token_t *tokens, int token_num)
             fprintf(out, "> tokens ended\n");
             break;
         default:
-            LOG(">>> fatal error: couldnt detect token type%40s\n", "[error]");
+            LOG("\n>>> fatal error: couldnt detect token type%40s\n", "[error]");
             break;
         }
     }
