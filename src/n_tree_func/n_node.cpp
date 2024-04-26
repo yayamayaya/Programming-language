@@ -1,5 +1,7 @@
 #include "../include/n_node.h"
 
+// TO DO сделать добавление узлов на основе стека
+
 node_t *create_node(const int data, const unsigned char data_type, const int branch_number, ...)
 {
     node_t *node = (node_t *)calloc(1, sizeof(node_t));
