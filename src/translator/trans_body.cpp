@@ -27,16 +27,11 @@ int compile_body(Stack <variable_t> *vars, node_t *body_root)
     {
         int error = make_body_command(vars, body_root->branches[i]);
         if (error)
-        {
-            free_local_mem(vars, vars->getStackSize());
             return error;
-        }
     }
     LOG("> body was read successfully\n");
     last_lcl_var_pos = free_mem_ptr;
-
     var_dump(vars);
-    
 
     free_local_mem(vars, last_lcl_var_pos - first_lcl_var_pos);
 
@@ -54,61 +49,65 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
     switch (node->data_type)
     {
     case OP:
+
         switch (node->data.command)
         {
+
         case E:
             error = assign_variable(vars, node);
             break;
         
         case IF:
-            if (node->branch_number != 2)
-            {
-                LOG(">>> error occured: if connection node don't have only 2 branches%40s\n", "[error]");
-                return IF_N_TWO_BRANCH;
-            }
+            _CHECK_NODE_NUM(2);
 
             error = expr_in_asm(vars, node->branches[R]->branches[0]);
             if (error)
                 return error;
 
-            fprintf(asm_file, "push 0\nje L%p\n\n", node);
+            _PUSH_NUM(0);
+            _JE_LABEL('L', node);
+            _POP_REG("bx");
 
             error = compile_body(vars, node->branches[L]);
 
-            fprintf(asm_file, "\nL%p:\n", node);
+            _LABEL('L', node);
+            _POP_REG("bx");
             break;
 
         case WHILE:
-            if (node->branch_number != 2)
-            {
-                LOG(">>> error occured: if connection node don't have only 2 branches%40s\n", "[error]");
-                return IF_N_TWO_BRANCH;
-            }
+            _CHECK_NODE_NUM(2);
 
             LOG("> translating while\n");
-            fprintf(asm_file, "\nS%p:\n", node);
+            _LABEL('S', node);
             error = expr_in_asm(vars, node->branches[R]->branches[0]);
             if (error)
                 return error;
 
-            fprintf(asm_file, "push 0\nje L%p\n\n", node);
+            _PUSH_NUM(0);
+            _JE_LABEL('L', node);
+            _POP_REG("bx");
 
             error = compile_body(vars, node->branches[L]);
 
-            fprintf(asm_file, "jmp S%p\n\n", node);
-            fprintf(asm_file, "\nL%p:\n", node);
+            _JMP_LABEL('S', node);
+            _LABEL('L', node);
+            _POP_REG("bx");
             break;
 
         case RET:
             LOG("> return was found\n");
             error = expr_in_asm(vars, node->branches[0]);
             
-            fprintf(asm_file, "pop dx\n\n");
+            //fprintf(asm_file, "pop dx\n\n");
 
             free_stk_frame(vars);
-            fprintf(asm_file, "mov cx,ax\n");
-            fprintf(asm_file, "mov, ax,0\n");
-            fprintf(asm_file, "ret\n\n");
+
+            _POP_REG("ax");
+            _POP_REG("cx");
+            _PUSH_REG("ax");
+            /*fprintf(asm_file, "mov cx,ax\n");
+            fprintf(asm_file, "mov, ax,0\n");*/
+            _RET();
             return_flag = 1;
 
             break;
@@ -134,20 +133,18 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
             break;
 
         case EXPR:
-            if (node->branch_number != 1)
-            {
-                LOG(">>> error occured: expression connection node don't have only 1 branch%40s\n", "[error]");
-                return EXPR_CONN_N_ONE_BRANCH;
-            }
-            node = node->branches[0];
+            _CHECK_NODE_NUM(1);
 
             error = expr_in_asm(vars, node);
+
+            _POP_REG("dx");
             break;
 
         default:
             LOG(">>> undefined compilation connection, yet to define%40s\n", "[error]");
             return FATAL_ERR;
             break;
+
         }
         break;
     
@@ -156,9 +153,8 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
         break;
 
     default:
-        LOG(">>> fatal error occured: couldn't detect node data type%40s\n", "[error]");
+        LOG("[error]>>> fatal error occured: couldn't detect node data type\n");
         return FATAL_ERR;
-        break;
     }
 
     return error;
@@ -173,11 +169,10 @@ void free_local_mem(Stack <variable_t> *vars, int var_num)
     {
         variable_t var_to_del = {0};
         vars->stackPop(&var_to_del);
-        fprintf(asm_file, "mov [cx+%d], 0\n", var_to_del.rel_address);
+        _FREE_LCL_MEM(var_to_del.rel_address);
         free_mem_ptr--;
     }
     
-    fprintf(asm_file, "\n");
     LOG("> current variables number: %d\n", vars->getStackSize());
     var_dump(vars);
 
@@ -191,8 +186,7 @@ void free_stk_frame(Stack <variable_t> *vars)
 
     LOG("> freeing all memory in stk_frame:\n");
     for (int i = 0; i < vars->getStackSize(); i++)
-        fprintf(asm_file, "mov [cx+%d], 0\n", i);
-    fprintf(asm_file, "\n");
+        _FREE_LCL_MEM(i);
 
     return;
 }
