@@ -39,7 +39,6 @@ int expr_in_asm(Stack <variable_t> *vars, node_t *node)
         LOG("> function call in expression was found\n");
         error = call_func(vars, node);
 
-        //_PUSH_REG("dx");
         return error;
     case CONN:
         if (node->data.command == EXPR)
