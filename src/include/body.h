@@ -1,8 +1,8 @@
 #ifndef BODY_F
 #define BODY_F
 
-#include "variable_func.h"
-#include "expr_func.h"
+#include "trans_variable.h"
+#include "trans_expr.h"
 
 enum BODY_ERRS
 {

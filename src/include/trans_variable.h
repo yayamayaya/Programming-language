@@ -2,10 +2,10 @@
 #define VAR_FUNC
 
 #include <string.h>
-#include "compiler_structs.h"
+#include "translator_structs.h"
 #include "n_node.h"
 #include "commands.h"
-#include "expr_func.h"
+#include "trans_expr.h"
 
 #define SIZE_OF_RAM 256
 

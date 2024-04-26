@@ -12,10 +12,4 @@ enum COMP_ERRS
 
 int compiler(node_t *root);
 
-/*typedef struct
-{
-    variables **var_arrs;
-    int arrays_number;
-} var_arrays;*/
-
 #endif

@@ -3,7 +3,7 @@
 
 #include "tokenizator.h"
 #include "../../graph_creator/create_graph.h"
-#include "compiler.h"
+#include "translator.h"
 
 #ifdef DEBUG
 #define TOK_SHIFT()\
