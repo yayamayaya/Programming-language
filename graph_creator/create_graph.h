@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "../src/include/n_node.h"
-#include "../../common/log/log.h"
+#include "../../common/logging/log.h"
 
 #define GPRAPH_CODE_START   "digraph G\n\
 {\n\
@@ -21,6 +21,22 @@
     penwidth = 2, color = \"#1a1718\"\n\
     ]\n\n\
 "
+
+#ifdef SIMPLE_GRAPH
+
+#define GRAPH_NUMBER_NODE   "\tnode_num%p [shape = \"record\", color=\"#478056\", label = \"%.2lf\"];\n", \
+                                                                                node, node->data.number
+#define GRAPH_OP_NODE       "\tnode_num%p [shape = \"record\", color=\"#632b2b\", label = \"%#04x\"];\n", \
+                                                                                node, node->data.command
+#define GRAPH_VAR_NODE      "\tnode_num%p [shape = \"record\", color=\"#70578a\", label = \"%s\"];\n", \
+                                                                                node, node->data.string
+#define GRAPH_CONN_NODE     "\tnode_num%p [shape = \"record\", color=\"#003366\", label = \"%#04x\"];\n", \
+                                                                                node, node->data.command   
+#define GRAPH_FUNC_NAME_NODE      "\tnode_num%p [shape = \"record\", color=\"#001296\", label = \"%s\"];\n", \
+                                                                                node, node->data.string
+
+#else
+
 #define GRAPH_NUMBER_NODE   "\tnode_num%p [shape = \"record\", color=\"#478056\", label = \"{%.2lf | {NUM | %p | %db}}\"];\n", \
                                                                                 node, node->data.number, node, node->branch_number
 #define GRAPH_OP_NODE       "\tnode_num%p [shape = \"record\", color=\"#632b2b\", label = \"{%#04x | {OP | %p | %db}}\"];\n", \
@@ -31,6 +47,8 @@
                                                                                 node, node->data.command, node, node->branch_number   
 #define GRAPH_FUNC_NAME_NODE      "\tnode_num%p [shape = \"record\", color=\"#001296\", label = \"{%s | {FUNC | %p | %db}}\"];\n", \
                                                                                 node, node->data.string, node, node->branch_number
+
+#endif
 
 #define DOT_CALL    "dot graph_creator/graphcode.txt -Tpng -o"
 
