@@ -7,8 +7,7 @@ kotagym pavlodar san kalasy
 kraba
     kraba
         sygeide 1
-    nakin' pavlodar san loge 1 kalasy etkeizenba
+    nakin' pavlodar san loge 1 kalasy eitkezinba
 
-    eu, san san - 1 bolad
-    sygeide kotagym pavlodar san kalasy * pavlodar san + 1 kalasy
+    sygeide kotagym pavlodar san - 1 kalasy * pavlodar san kalasy
 nakin'

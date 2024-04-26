@@ -1,0 +1,17 @@
+Elbasy pavlodar kalasy
+kraba
+    eu, syn 9 bolad
+    eu, bir 1 bolad
+    eu, eki 0 bolad
+    eu, ysh 0 bolad
+
+    kraba
+        eu, ysh eki + bir bolad
+        eu, eki bir bolad
+        eu, bir ysh bolad
+
+        eu, syn syn - 1 bolad
+    nakin' pavlodar syn kalasy shenber
+
+    sygeide ysh
+nakin'
