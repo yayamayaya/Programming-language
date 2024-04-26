@@ -1,5 +1,7 @@
 #include "../include/arithm.h"
 
+// Сделать dsl, проверку на ноль
+
 int calc_consts(node_t *node)
 {
     static node_t *root = node;
@@ -8,7 +10,7 @@ int calc_consts(node_t *node)
     for (int i = 0; i < node->branch_number; i++)
         calc_consts(node->branches[i]);
 
-    if (node->data_type == OP && node->data.command & 0x20)
+    if (node->data_type == OP && node->data.command & AR_OP)
     {
         if (node->branch_number != 2)
         {
@@ -33,7 +35,7 @@ int calc_consts(node_t *node)
         }
     }
     
-    LOG("> this branch don't have any arithm. operations\n");
+    //LOG("> this branch don't have any arithm. operations\n");
     return 0;
 }
 

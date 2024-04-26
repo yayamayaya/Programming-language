@@ -44,9 +44,9 @@ int compiler(node_t *root)
     LOG("> compiling programm\n");
     error = compile_func(root);
     if (error)
-        LOG("translation error occured%40s\n", "[error]");
+        {LOG("translation error occured%40s\n", "[error]");}
     else
-        LOG(">> compilation successfull\n");
+        {LOG(">> compilation successfull\n");}
 
     global_vars->stackDtor();
     funcs->stackDtor();

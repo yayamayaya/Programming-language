@@ -4,6 +4,8 @@ int make_body_command(Stack <variable_t> *vars, node_t *node);
 void free_local_mem(Stack <variable_t> *vars, int var_num);
 void free_stk_frame(Stack <variable_t> *vars);
 
+//Разбить большую функцию, избавиться от глобальных переменных,  сделать общую структур для глобально используемых переменных
+
 int first_lcl_var_pos = 0;
 int last_lcl_var_pos = 0;
 
@@ -104,7 +106,7 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
             fprintf(asm_file, "pop dx\n\n");
 
             free_stk_frame(vars);
-            fprintf(asm_file, "mov rbp,ax\n");
+            fprintf(asm_file, "mov cx,ax\n");
             fprintf(asm_file, "mov, ax,0\n");
             fprintf(asm_file, "ret\n\n");
             return_flag = 1;
@@ -119,7 +121,7 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
 
     case VAR:
         if (find_var(vars, node->data.string))
-            LOG("variable already exists, continuing forward\n");
+            {LOG("variable already exists, continuing forward\n");}
         else
             error = create_variable(vars, node);
         break;
@@ -171,7 +173,7 @@ void free_local_mem(Stack <variable_t> *vars, int var_num)
     {
         variable_t var_to_del = {0};
         vars->stackPop(&var_to_del);
-        fprintf(asm_file, "mov [rbp+%d], 0\n", var_to_del.rel_address);
+        fprintf(asm_file, "mov [cx+%d], 0\n", var_to_del.rel_address);
         free_mem_ptr--;
     }
     
@@ -189,7 +191,7 @@ void free_stk_frame(Stack <variable_t> *vars)
 
     LOG("> freeing all memory in stk_frame:\n");
     for (int i = 0; i < vars->getStackSize(); i++)
-        fprintf(asm_file, "mov [rbp+%d], 0\n", i);
+        fprintf(asm_file, "mov [cx+%d], 0\n", i);
     fprintf(asm_file, "\n");
 
     return;

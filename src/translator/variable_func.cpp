@@ -23,10 +23,10 @@ int assign_variable(Stack <variable_t> *vars, node_t *node)
     if (existing_var)
     {
         LOG("existing variable found, assigning a value to it:\n");
-        fprintf(asm_file, "pop [rbp+%d]\n", existing_var->rel_address);
+        fprintf(asm_file, "pop [cx+%d]\n", existing_var->rel_address);
         return 0;
     }
-    fprintf(asm_file, "pop [rbp+%d]\n\n", free_mem_ptr);
+    fprintf(asm_file, "pop [cx+%d]\n\n", free_mem_ptr);
     
     create_variable(vars, node->branches[R]);
 
@@ -53,6 +53,7 @@ int create_variable(Stack <variable_t> *vars, node_t *node)
 variable_t *find_var(Stack <variable_t> *vars, const char *var_name)
 {
     assert(vars);
+    assert(var_name);
 
     for (int i = 0; i < global_vars->getStackSize(); i++)
         if (!strcmp((global_vars->getDataOnPos(i)).var, var_name))
@@ -74,6 +75,9 @@ variable_t *find_var(Stack <variable_t> *vars, const char *var_name)
 
 int push_var_in_asm(Stack <variable_t> *vars, const char *var_name)
 {
+    assert(vars);
+    assert(var_name);
+
     for (int i = 0; i < global_vars->getStackSize(); i++)
         if (!strcmp((global_vars->getDataOnPos(i)).var, var_name))
         {
@@ -86,7 +90,7 @@ int push_var_in_asm(Stack <variable_t> *vars, const char *var_name)
     if (lcl_var)
     {
         LOG("> local variable %s was found on the address %d and will be pushed in stack\n", lcl_var->var, lcl_var->rel_address);
-        fprintf(asm_file, "push [rbp+%d]\n", lcl_var->rel_address);
+        fprintf(asm_file, "push [cx+%d]\n", lcl_var->rel_address);
         return 0;
     }
     

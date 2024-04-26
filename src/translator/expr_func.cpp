@@ -2,6 +2,8 @@
 
 int make_command(unsigned char cmd);
 
+//TO DO сделать dsl, проверка деления на 0
+
 int expr_in_asm(Stack <variable_t> *vars, node_t *node)
 {
     assert(asm_file);
@@ -48,7 +50,6 @@ int expr_in_asm(Stack <variable_t> *vars, node_t *node)
         if (node->data.command == EXPR)
             return expr_in_asm(vars, node->branches[0]);
         
-    
     default:
         break;
     }

@@ -7,6 +7,8 @@ void allocate_stk_frames(node_t *node);
 int translate_function(node_t *node);
 int create_global_vars(node_t *node);
 
+//TO DO посокращать длинные строки через функции, убрать костыль с Elbasy, венести кодогенерацию в дефайны
+
 int compile_func(node_t *root)
 {
     assert(funcs);
@@ -52,8 +54,11 @@ int compile_func(node_t *root)
             if (error)
                 return error;
         }
+    
 
+    fprintf(asm_file, "mov cx, %d\n", find_func("Elbasy")->rbp);
     fprintf(asm_file, "call Elbasy\n");
+    fprintf(asm_file, "push dx\n");
     fprintf(asm_file, "out\n");
     fprintf(asm_file, "halt\n\n\n");
 
@@ -101,7 +106,7 @@ int create_global_vars(node_t *node)
 
     case VAR:
         if (find_var(global_vars, node->data.string))
-            LOG("variable already exists, continuing forward\n");
+            {LOG("variable already exists, continuing forward\n");}
         else
             error = create_variable(global_vars, node);
         break;
@@ -127,7 +132,7 @@ int translate_function(node_t *node)
     }
     
     fprintf(asm_file, "%s:\n", func->func);
-    //fprintf(asm_file, "mov rbp, %d\n", func->rbp);
+    //fprintf(asm_file, "mov cx, %d\n", func->rbp);
 
     LOG(">creating a variable stack\n");
     Stack <variable_t> vars = {};
@@ -182,20 +187,20 @@ int call_func(Stack <variable_t> *vars, node_t *node)
         return ARG_NUM_NOT_MATCH_ERR;
     }
 
-    LOG("> changing rbp loaction:\n");
-    fprintf(asm_file, "mov ax,rbp\n");
-    fprintf(asm_file, "mov rbp,%d\n", function->rbp);
+    LOG("> changing cx loaction:\n");
+    fprintf(asm_file, "mov ax,cx\n");
+    fprintf(asm_file, "mov cx,%d\n", function->rbp);
 
     for (int i = 0; i < function->arg_num; i++)
     {
         int error = expr_in_asm(vars, node->branches[0]->branches[i]);
         if (error)
         {
-            LOG("> variable were not defined in this scope%40s\n", "[error]");
+            LOG("> variable was not defined in this scope%40s\n", "[error]");
             return VAR_DEF_NOT_F_ERR;
         }
         
-        fprintf(asm_file, "pop [rbp+%d]\n", i);
+        fprintf(asm_file, "pop [cx+%d]\n", i);
     }
     fprintf(asm_file, "call %s\n\n", function->func);
     return 0;
