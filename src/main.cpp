@@ -1,6 +1,6 @@
 #include "include/lang.h"
 
-FILE *logs = NULL;
+FILE *log_file = NULL;
 
 int main(int argc, char const *argv[])
 {
