@@ -1,4 +1,4 @@
-#include "../include/variable_func.h"
+#include "../include/trans_variable.h"
 
 int assign_variable(Stack <variable_t> *vars, node_t *node)
 {
@@ -6,28 +6,27 @@ int assign_variable(Stack <variable_t> *vars, node_t *node)
     assert(node);
     assert(node->data.command == E);
     assert(vars);
+    _CHECK_NODE_NUM(2);
     if (node->branches[R]->data_type != VAR)
     {
-        LOG(">>> language parser error occured: the left branch of assign command is NOT an variable%40s\n", "[error]");
+        LOG(">>> language parser error occured: the right branch of assign command is NOT an variable%40s\n", "[error]");
         return ASS_L_NODE_ERR;
     }
 
-    LOG("calculating expression:\n");
+    LOG("> calculating expression for variable:\n");
     int error = expr_in_asm(vars, node->branches[L]->branches[0]);
     if (error)
         return error;
 
     LOG("> creating an assembly command:\n");
-
     variable_t *existing_var = find_var(vars, node->branches[R]->data.string);
     if (existing_var)
     {
         LOG("existing variable found, assigning a value to it:\n");
-        fprintf(asm_file, "pop [cx+%d]\n", existing_var->rel_address);
+        _POP_REL(existing_var->rel_address);
         return 0;
     }
-    fprintf(asm_file, "pop [cx+%d]\n\n", free_mem_ptr);
-    
+    _POP_REL(free_mem_ptr);
     create_variable(vars, node->branches[R]);
 
     return 0;
@@ -82,7 +81,7 @@ int push_var_in_asm(Stack <variable_t> *vars, const char *var_name)
         if (!strcmp((global_vars->getDataOnPos(i)).var, var_name))
         {
             LOG("> global variable %s was found\n", global_vars->getDataOnPos(i).var);
-            fprintf(asm_file, "push [%d]\n", (global_vars->getDataOnPos(i)).rel_address);
+            _PUSH_REL((global_vars->getDataOnPos(i)).rel_address);
             return 0;
         }
     
@@ -90,7 +89,7 @@ int push_var_in_asm(Stack <variable_t> *vars, const char *var_name)
     if (lcl_var)
     {
         LOG("> local variable %s was found on the address %d and will be pushed in stack\n", lcl_var->var, lcl_var->rel_address);
-        fprintf(asm_file, "push [cx+%d]\n", lcl_var->rel_address);
+        _PUSH_REL(lcl_var->rel_address);
         return 0;
     }
     
