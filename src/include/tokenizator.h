@@ -1,8 +1,8 @@
 #ifndef TOKENIZATOR
 #define TOKENIZATOR
 
-#include "../../../common/log/log.h"
-#include "../../../common/file_reading/file_reader.h"
+#include "../../../common/logging/log.h"
+#include "../../../common/file_reading/src/file_reading.h"
 #include "commands.h"
 #include "locale.h"
 #include "n_node.h"
@@ -10,7 +10,7 @@
 #include "string.h"
 
 #ifdef DEBUG
-#define PRINT_TOKENS() token_dump(logs, *tokens, token_number)
+#define PRINT_TOKENS() token_dump(log_file, *tokens, token_number)
 #else
 #define PRINT_TOKENS()
 #endif

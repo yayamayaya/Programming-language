@@ -5,10 +5,10 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <assert.h>
-#include "../../../common/log/log.h"
+#include "../../../common/logging/log.h"
 
 #ifdef DEBUG
-#define PRINT_NODE() print_node(logs, node)
+#define PRINT_NODE() print_node(log_file, node)
 #else
 #define PRINT_NODE()
 #endif
@@ -43,6 +43,7 @@ enum DATA_TYPES
 
     //GRPS
     VAR_OP      = 0x40,
+    AR_OP       = 0x20,
 };
 
 enum NODE_ERRORS

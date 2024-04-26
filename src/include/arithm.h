@@ -2,7 +2,7 @@
 #define ARITHM
 
 #include <stdio.h>
-#include "../../../common/log/log.h"
+#include "../../../common/logging/log.h"
 #include "n_node.h"
 #include "commands.h"
 #include <math.h>
