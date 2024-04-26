@@ -7,11 +7,11 @@
 
 #ifdef DEBUG
 #define TOK_SHIFT()\
-    tkns++;\
+    (*pos)++;\
     LOG("> tokens shifted, current token is:\n");\
-    token_dump(logs, tkns, 1);
+    token_dump(log_file, tkns + *pos, 1);
 #else
-#define TOK_SHIFT() tkns++
+#define TOK_SHIFT() (*pos)++
 #endif
 
 #define _ADD_B(arg1, arg2)\

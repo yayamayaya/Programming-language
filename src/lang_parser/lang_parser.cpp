@@ -1,5 +1,7 @@
 #include "../include/lang.h"
 
+//TO DO: избавиться от глобальных токенов, вынести некоторые ифы в дефайны
+
 /*
 
 1 итерация:
@@ -58,7 +60,7 @@ code        ::= {func}+$
 func        ::= name {assignment | {args body}}
 args        ::= '('name [, args]')'
 body        ::= '{'STR+'}'
-STR         ::= {cond | ret} |{"eu," {variable | E}}
+STR         ::= {cond | ret | E} |{"eu," variable}
 cond        ::= body '('E')' {"if" | "while"}
 assignment  ::= E "bolad"
 E           - стандартный парсер выражений из дифф + лог. операции + вызов функций
@@ -66,43 +68,59 @@ func_call   ::= "eu, " name call_args
 call_args   ::= '('{ | E [, E]*')'
 name        ::= [а-я, А-Я]
 ret         ::= "sygeide" E
+
+5 итерация:
+code        ::= {func}+$
+func        ::= name {assignment | {args body}}
+args        ::= '('name [, args]')'
+body        ::= '{'STR+'}'
+STR         ::= {cond | ret | E} |{"eu," variable}
+variable    ::= data assignment
+cond        ::= body '('E')' {"if" | "while"}
+assignment  ::= E "bolad"
+E           - стандартный парсер выражений из дифф + лог. операции + вызов функций
+func_call   ::= "eu, " name call_args
+call_args   ::= '('{ | E [, E]*')'
+data        ::= ["kaida"] name
+name        ::= [а-я, А-Я]
+ret         ::= "sygeide" E
+
 */
 
-node_t *pars_STR();
-node_t *pars_body();
-node_t *pars_func();
-node_t *pars_cond();
-node_t *pars_func_call();
-node_t *pars_call_args();
-node_t *pars_args();
-node_t *pars_E();
-node_t *pars_sum();
-node_t *pars_mult();
-node_t *pars_power();
-node_t *pars_number();
-node_t *pars_variable();
-node_t *pars_assignment();
-node_t *pars_name();
+node_t *pars_STR(token_t *tkns, int *pos);
+node_t *pars_body(token_t *tkns, int *pos);
+node_t *pars_func(token_t *tkns, int *pos);
+node_t *pars_cond(token_t *tkns, int *pos);
+node_t *pars_func_call(token_t *tkns, int *pos);
+node_t *pars_call_args(token_t *tkns, int *pos);
+node_t *pars_args(token_t *tkns, int *pos);
+node_t *pars_E(token_t *tkns, int *pos);
+node_t *pars_sum(token_t *tkns, int *pos);
+node_t *pars_mult(token_t *tkns, int *pos);
+node_t *pars_power(token_t *tkns, int *pos);
+node_t *pars_number(token_t *tkns, int *pos);
+node_t *pars_variable(token_t *tkns, int *pos);
+node_t *pars_assignment(token_t *tkns, int *pos);
+node_t *pars_name(token_t *tkns, int *pos);
 
-token_t *tkns = NULL;
-
-node_t *create_syntax_tree(token_t *token_arr)
+node_t *create_syntax_tree(token_t *tkns)
 {
-    tkns = token_arr;
+    assert(tkns);
     LOG("-----------------------------------------------\n\n");
     LOG("> creating syntax tree:\n");
 
+    int pos = 0;
     node_t *root = create_node(PROGRAMM, CONN, 0);
     node_t *node = NULL;
     
     do {
-        node = pars_func();
+        node = pars_func(tkns, &pos);
         _ADD_B(root, node);
-    } while (node && tkns->data_type != $);
+    } while (node && tkns[pos].data_type != $);
 
-    if (tkns->data_type != $)
+    if (tkns[pos].data_type != $)
     {
-        LOG("$ not found <(%p)>%40s\n", tkns, "[error]");
+        LOG("[error]>>> $ not found <(%p)>\n", tkns);
         kill_tree(root);
         root = NULL;
     }
@@ -110,20 +128,20 @@ node_t *create_syntax_tree(token_t *token_arr)
     return root;
 }
 
-node_t *pars_func()
+node_t *pars_func(token_t *tkns, int *pos)
 {
     LOG("> creating function\n");
 
-    node_t *func = pars_name();
+    node_t *func = pars_name(tkns, pos);
     if (!func)
         return NULL;
 
-    node_t *args = pars_args();
+    node_t *args = pars_args(tkns, pos);
     if (!args)
     {
         LOG("> arguments were'nt parsed, checkin for the variable:\n");
         func->data_type = VAR;
-        node_t *var = pars_assignment();
+        node_t *var = pars_assignment(tkns, pos);
         if (!var)
             return func;
 
@@ -133,7 +151,7 @@ node_t *pars_func()
     }
 
     func->data_type = FUNC;
-    node_t *body = pars_body();
+    node_t *body = pars_body(tkns, pos);
     _ADD_B(func, args);
     _ADD_B(func, body);
 
@@ -141,44 +159,45 @@ node_t *pars_func()
     return func;
 }
 
-node_t *pars_ret()
+node_t *pars_ret(token_t *tkns, int *pos)
 {
-    if (tkns->data_type != COMMAND || tkns->data.command != RET)
+    if (tkns[*pos].data_type != COMMAND || tkns[*pos].data.command != RET)
     {
         LOG("> return not found\n");
         return NULL;
     }
     TOK_SHIFT();
 
-    node_t *expr = pars_E();
+    node_t *expr = pars_E(tkns, pos);
     if (!expr)
         return NULL;
     
     return create_node(RET, OP, 1, expr);
 }
 
-node_t *pars_STR()
+node_t *pars_STR(token_t *tkns, int *pos)
 {
-    node_t *node = pars_ret();
+    node_t *node = pars_ret(tkns, pos);
     if (node)
         return node;
     
-    node = pars_cond();
+    node = pars_E(tkns, pos);
     if (node)
         return node;
     
-    node = pars_E();
+    node = pars_cond(tkns, pos);
     if (node)
         return node;
 
-    if (tkns->data_type != COMMAND || (tkns->data.command != STR_END))
+    if (tkns[*pos].data_type != COMMAND || (tkns[*pos].data.command != STR_END))
     {
-        LOG(">>> string start wasn't found, syntax error%40s\n", "[error]");
+        LOG("[error]>>> string start wasn't found, syntax error\n");
+        printf("[error]>>> string start wasn't found, syntax error\n");
         return NULL;
     }
     TOK_SHIFT();
 
-    node = pars_variable();
+    node = pars_variable(tkns, pos);
     if (node)
         return node;
 
@@ -186,9 +205,9 @@ node_t *pars_STR()
     return NULL;
 }
 
-node_t *pars_body()
+node_t *pars_body(token_t *tkns, int *pos)
 {
-    if (tkns->data_type != OP || tkns->data.command != OP_F_BR)
+    if (tkns[*pos].data_type != OP || tkns[*pos].data.command != OP_F_BR)
     {
         LOG("> opening figure bracket not found\n");
         return NULL;
@@ -200,7 +219,7 @@ node_t *pars_body()
     node_t *body = create_node(BODY, CONN, 0);
     do
     {
-        node = pars_STR();
+        node = pars_STR(tkns, pos);
         if (!node)
         {
             kill_tree(body);
@@ -208,7 +227,7 @@ node_t *pars_body()
         }
         
         _ADD_B(body, node);
-    } while (tkns->data_type != OP || tkns->data.command != CL_F_BR);
+    } while (tkns[*pos].data_type != OP || tkns[*pos].data.command != CL_F_BR);
 
     if (!body->branch_number)
     {
@@ -217,9 +236,10 @@ node_t *pars_body()
         return NULL;
     }
     
-    if (tkns->data_type != OP || tkns->data.command != CL_F_BR)
+    if (tkns[*pos].data_type != OP || tkns[*pos].data.command != CL_F_BR)
     {
-        LOG(">>> closing figure bracket not found%40s\n", "[error]");
+        LOG("[error]>>> closing figure bracket not found\n");
+        printf("[error]>>> closing figure bracket not found\n");
         kill_tree(body);
         return NULL;
     }
@@ -230,62 +250,71 @@ node_t *pars_body()
     return body;
 }
 
-node_t *pars_cond()
+node_t *pars_cond(token_t *tkns, int *pos)
 {
     LOG("> parsing condition\n");
-    node_t *body = pars_body();
+    node_t *body = pars_body(tkns, pos);
     if (!body)
         return NULL;
 
     LOG("> body in the cond was parsed\n");
 
-    if (tkns->data_type != OP || tkns->data.command != OP_BR)
+    if (tkns[*pos].data_type != OP || tkns[*pos].data.command != OP_BR)
     {
-        LOG(">>> syntax error: opening bracket wasn't found <(%p)>%40s\n", tkns, "[error]");
+        LOG("[error]>>> syntax error: opening bracket wasn't found <(%p)>\n", tkns);
+        printf("[error]>>> syntax error: opening bracket wasn't found\n");
         kill_tree(body);
         return NULL;
     }
     TOK_SHIFT();
 
-    node_t *expr = pars_E();
+    node_t *expr = pars_E(tkns, pos);
     if (!expr)
     {
         kill_tree(body);
         return NULL;
     }
     
-    if (tkns->data_type != OP || tkns->data.command != CL_BR)
+    if (tkns[*pos].data_type != OP || tkns[*pos].data.command != CL_BR)
     {
-        LOG(">>> syntax error: closing bracket wasn't found <(%p)>%40s\n", tkns, "[error]");
+        LOG("[error]>>> syntax error: closing bracket wasn't found <(%p)>\n", tkns);
+        printf("[error]>>> syntax error: closing bracket wasn't found\n");
         kill_tree(body);
         kill_tree(expr);
         return NULL;
     }
     TOK_SHIFT();
 
-    if (tkns->data_type != OP || !(tkns->data.command == IF || tkns->data.command == WHILE))
+    if (tkns[*pos].data_type != OP || !(tkns[*pos].data.command == IF || tkns[*pos].data.command == WHILE))
     {
-        LOG(">>> syntax error: if/while operator wasn't found... <(%p)>%40s\n", tkns, "[error]");
+        LOG("[error]>>> syntax error: if/while operator wasn't found... <(%p)>\n", tkns);
+        printf("[error]>>> syntax error: if/while operator wasn't found\n");
         kill_tree(body);
         kill_tree(expr);
         return NULL;
     }
-    node_t *node = create_node(tkns->data.command, OP, 2, body, expr);
+    node_t *node = create_node(tkns[*pos].data.command, OP, 2, body, expr);
     TOK_SHIFT(); 
     
     return node;
 }
 
-node_t *pars_variable()
+node_t *pars_variable(token_t *tkns, int *pos)
 {
     LOG("> creating an variable:\n");
 
-    node_t *name = pars_name();
+    node_t *name = pars_name(tkns, pos);
     if (!name)
         return NULL;
     name->data_type = VAR;
 
-    node_t *node = pars_assignment();
+    if (tkns[*pos].data_type == COMMAND && tkns[*pos].data.command == VAR_END)
+    {
+        TOK_SHIFT();
+        return name;
+    }
+
+    node_t *node = pars_assignment(tkns, pos);
     if (!node)
     {
         kill_tree(name);
@@ -296,35 +325,36 @@ node_t *pars_variable()
     return node;
 }
 
-node_t *pars_assignment()
+node_t *pars_assignment(token_t *tkns, int *pos)
 {
     LOG("> creating expression and operator:\n");
-    node_t *expr = pars_E();
+    node_t *expr = pars_E(tkns, pos);
     if (!expr)
         return NULL;
     
-    if (tkns->data_type == OP && tkns->data.command == E)
+    if (tkns[*pos].data_type == OP && tkns[*pos].data.command == E)
     {
         LOG("> variable with assignment found\n");
         TOK_SHIFT();
         return create_node((unsigned char)E, OP, 1, expr);
     }
 
-    LOG("syntax error, assign operator wasn't found <(%p)>%40s\n", tkns, "[error]");
+    LOG("[error]>>> syntax error, assign operator wasn't found <(%p)>\n", tkns);
+    printf("[error]>>> syntax error, assign operator wasn't found\n");
     kill_tree(expr);
     return NULL;
 }
 
-node_t *pars_func_call()
+node_t *pars_func_call(token_t *tkns, int *pos)
 {
     LOG("> creating function call\n");
 
-    node_t *name = pars_name();
+    node_t *name = pars_name(tkns, pos);
     if (!name)
         return NULL;
     name->data_type = VAR;
 
-    node_t *node = pars_call_args();
+    node_t *node = pars_call_args(tkns, pos);
     if (!node)
         return name;
 
@@ -335,9 +365,9 @@ node_t *pars_func_call()
     return name;
 }
 
-node_t *pars_call_args()
+node_t *pars_call_args(token_t *tkns, int *pos)
 {
-    if (tkns->data_type != OP || tkns->data.command != OP_BR)
+    if (tkns[*pos].data_type != OP || tkns[*pos].data.command != OP_BR)
     {
         LOG("> opening bracket not found, variable it is\n");
         return NULL;
@@ -345,15 +375,15 @@ node_t *pars_call_args()
     LOG("> opening bracket was found on %p\n", tkns);
     TOK_SHIFT();
 
-    node_t *expr = pars_E();
+    node_t *expr = pars_E(tkns, pos);
     if (!expr)
         return NULL;
 
     node_t *args = create_node(ARGS, CONN, 1, expr);
-    while (tkns->data_type == OP && tkns->data.command == ZAP)
+    while (tkns[*pos].data_type == OP && tkns[*pos].data.command == ZAP)
     {
         TOK_SHIFT();
-        expr = pars_E();
+        expr = pars_E(tkns, pos);
         if (!expr)
         {
             kill_tree(args);
@@ -362,9 +392,10 @@ node_t *pars_call_args()
         _ADD_B(args, expr);
     }
 
-    if (tkns->data_type != OP || tkns->data.command != CL_BR)
+    if (tkns[*pos].data_type != OP || tkns[*pos].data.command != CL_BR)
     {
-        LOG(">>> syntax error: closing bracket not found <(%p)>%40s\n", tkns, "[error]");
+        LOG("[error]>>> syntax error: closing bracket not found <(%p)>\n", tkns);
+        printf("[error]>>> syntax error: closing bracket not found\n");
         kill_tree(args);
         return NULL;
     }
@@ -373,9 +404,9 @@ node_t *pars_call_args()
     return args;
 }
 
-node_t *pars_args()
+node_t *pars_args(token_t *tkns, int *pos)
 {
-    if (tkns->data_type != OP || tkns->data.command != OP_BR)
+    if (tkns[*pos].data_type != OP || tkns[*pos].data.command != OP_BR)
     {
         LOG("> opening bracket not found\n");
         return NULL;
@@ -386,7 +417,7 @@ node_t *pars_args()
     node_t *node = create_node((unsigned char)ARGS, CONN, 0);
     do
     {
-        node_t *arg = pars_name();
+        node_t *arg = pars_name(tkns, pos);
         if (!arg)
         {
             LOG(">>> arguments not found\n");
@@ -395,7 +426,7 @@ node_t *pars_args()
         arg->data_type = VAR;
         _ADD_B(node, arg);
 
-        if (tkns->data_type == OP && tkns->data.command == ZAP)
+        if (tkns[*pos].data_type == OP && tkns[*pos].data.command == ZAP)
         {
             LOG("> ZAP was found\n");
             TOK_SHIFT();
@@ -407,9 +438,10 @@ node_t *pars_args()
         }
     } while (1);
     
-    if (tkns->data_type != OP || tkns->data.command != CL_BR)
+    if (tkns[*pos].data_type != OP || tkns[*pos].data.command != CL_BR)
     {
-        LOG(">>> syntax error: closing bracket not found <(%p)>%40s\n", tkns, "[error]");
+        LOG("[error]>>> syntax error: closing bracket not found <(%p)>\n", tkns);
+        printf("[error]>>> syntax error: closing bracket not found\n");
         kill_tree(node);
         return NULL;
     }
@@ -419,32 +451,32 @@ node_t *pars_args()
     return node;
 }
 
-node_t *pars_name()
+node_t *pars_name(token_t *tkns, int *pos)
 {
     node_t *node = NULL;
 
-    if (tkns->data_type == YET_TO_DET)
+    if (tkns[*pos].data_type == YET_TO_DET)
     {
         LOG("> creating a string with name:\n");
-        node = create_node(tkns->data.string, 0, 0);
+        node = create_node(tkns[*pos].data.string, 0, 0);
         TOK_SHIFT();
     }
     return node;
 }
 
 //--------------------------------------------------------------Expression parser---------------------------------------------------------------
-node_t *pars_E()
+node_t *pars_E(token_t *tkns, int *pos)
 {
-    node_t *node = pars_sum();
+    node_t *node = pars_sum(tkns, pos);
     if (!node)
         return NULL;
     
-    while (tkns->data_type == COMMAND && (LOG_E <= tkns->data.command && tkns->data.command <= LOG_BE))
+    while (tkns[*pos].data_type == COMMAND && (LOG_E <= tkns[*pos].data.command && tkns[*pos].data.command <= LOG_BE))
     {
-        unsigned char command = tkns->data.command;
+        unsigned char command = tkns[*pos].data.command;
         TOK_SHIFT();
         node = create_node(command, OP, 1, node);
-        _ADD_B(node, pars_sum());
+        _ADD_B(node, pars_sum(tkns, pos));
     }
 
     node_t *expr = create_node(EXPR, CONN, 1, node);
@@ -452,69 +484,70 @@ node_t *pars_E()
     return expr;
 }
 
-node_t *pars_sum()
+node_t *pars_sum(token_t *tkns, int *pos)
 {
-    node_t *node = pars_mult();
+    node_t *node = pars_mult(tkns, pos);
     if (!node)
         return NULL;
 
-    while (tkns->data_type == COMMAND && (tkns->data.command == PLUS || tkns->data.command == MINUS))
+    while (tkns[*pos].data_type == COMMAND && (tkns[*pos].data.command == PLUS || tkns[*pos].data.command == MINUS))
     {
-        unsigned char command = tkns->data.command;
+        unsigned char command = tkns[*pos].data.command;
         TOK_SHIFT();
         node = create_node(command, OP, 1, node);
-        _ADD_B(node, pars_mult());
+        _ADD_B(node, pars_mult(tkns, pos));
     }
 
     return node;
 }
 
-node_t *pars_mult()
+node_t *pars_mult(token_t *tkns, int *pos)
 {
-    node_t *node = pars_power();
+    node_t *node = pars_power(tkns, pos);
     if (!node)
         return NULL;
 
-    while (tkns->data_type == COMMAND && (tkns->data.command == STAR || tkns->data.command == SLASH))
+    while (tkns[*pos].data_type == COMMAND && (tkns[*pos].data.command == STAR || tkns[*pos].data.command == SLASH))
     {
-        unsigned char command = tkns->data.command;
+        unsigned char command = tkns[*pos].data.command;
         TOK_SHIFT();
         node = create_node(command, OP, 1, node);
-        _ADD_B(node, pars_power());
+        _ADD_B(node, pars_power(tkns, pos));
     }
 
     return node;
 }
 
-node_t *pars_power()
+node_t *pars_power(token_t *tkns, int *pos)
 {
-    node_t *node = pars_number();
+    node_t *node = pars_number(tkns, pos);
     if (!node)
         return NULL;
 
-    while (tkns->data_type == COMMAND && tkns->data.command == POW)
+    while (tkns[*pos].data_type == COMMAND && tkns[*pos].data.command == POW)
     {
-        unsigned char command = tkns->data.command;
+        unsigned char command = tkns[*pos].data.command;
         TOK_SHIFT();
         node = create_node(command, OP, 1, node);
-        _ADD_B(node, pars_number());
+        _ADD_B(node, pars_number(tkns, pos));
     }
 
     return node;
 }
 
-node_t *pars_number()
+node_t *pars_number(token_t *tkns, int *pos)
 {
     node_t *node = NULL;
 
-    if (tkns->data_type == COMMAND && tkns->data.command == OP_BR)
+    if (tkns[*pos].data_type == COMMAND && tkns[*pos].data.command == OP_BR)
     {
         TOK_SHIFT();
-        node = pars_E();
+        node = pars_E(tkns, pos);
         
-        if (tkns->data.command != CL_BR)
+        if (tkns[*pos].data.command != CL_BR)
         {
-            LOG(">>> closing bracket wasn't found, character is: %#04x <(%p)>%40s\n", tkns->data.command, tkns, "[error]");  
+            LOG("[error]>>> closing bracket wasn't found, character is: %#04x <(%p)>\n", tkns[*pos].data.command, tkns);
+            printf("[error]>>> closing bracket wasn't found\n");
             kill_tree(node);                  
             return NULL;
         }
@@ -523,16 +556,16 @@ node_t *pars_number()
             TOK_SHIFT();
         }
     }
-    else if (tkns->data_type == NUMBER)
+    else if (tkns[*pos].data_type == NUMBER)
     {
         LOG("> number found\n");
-        node = create_node(tkns->data.number, NUM, 0);
+        node = create_node(tkns[*pos].data.number, NUM, 0);
         TOK_SHIFT();
     }
-    else if (tkns->data_type == YET_TO_DET)
+    else if (tkns[*pos].data_type == YET_TO_DET)
     {
         LOG("> some string founded\n");
-        node = pars_func_call();
+        node = pars_func_call(tkns, pos);
     }
     else
         LOG("> parser couldn't parse a number\n");
