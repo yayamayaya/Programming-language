@@ -1,4 +1,4 @@
-#include "../include/comp_func.h"
+#include "../include/trans_func.h"
 
 int stk_frame_pos = 0;
 int return_flag = 0;
@@ -55,12 +55,7 @@ int compile_func(node_t *root)
                 return error;
         }
     
-
-    fprintf(asm_file, "mov cx, %d\n", find_func("Elbasy")->rbp);
-    fprintf(asm_file, "call Elbasy\n");
-    fprintf(asm_file, "push dx\n");
-    fprintf(asm_file, "out\n");
-    fprintf(asm_file, "halt\n\n\n");
+    _CALL_MAIN();
 
     LOG("> compiling functions\n");
     for (int br = 0; br < root->branch_number; br++)
@@ -131,9 +126,7 @@ int translate_function(node_t *node)
         return FUNC_FAT_ERR;
     }
     
-    fprintf(asm_file, "%s:\n", func->func);
-    //fprintf(asm_file, "mov cx, %d\n", func->rbp);
-
+    _FUNC(func->func);
     LOG(">creating a variable stack\n");
     Stack <variable_t> vars = {};
     vars.stackCtor(10, "logs/vars.log");
@@ -188,8 +181,7 @@ int call_func(Stack <variable_t> *vars, node_t *node)
     }
 
     LOG("> changing cx loaction:\n");
-    fprintf(asm_file, "mov ax,cx\n");
-    fprintf(asm_file, "mov cx,%d\n", function->rbp);
+    _PUSH_REG("cx");
 
     for (int i = 0; i < function->arg_num; i++)
     {
@@ -200,9 +192,9 @@ int call_func(Stack <variable_t> *vars, node_t *node)
             return VAR_DEF_NOT_F_ERR;
         }
         
-        fprintf(asm_file, "pop [cx+%d]\n", i);
+        _POP_REL(i);
     }
-    fprintf(asm_file, "call %s\n\n", function->func);
+    _CALL_FUNC(function->func);
     return 0;
 }
 
