@@ -7,13 +7,13 @@ c = src/include/tokenizator.h
 l = src/include/lang.h
 g = graph_creator/create_graph.h
 b = src/include/body.h
-cm = src/include/compiler.h
+cm = src/include/translator.h
 cmd = src/include/commands.h
 b = src/include/body.h
-ef = src/include/expr_func.h
-vf = src/include/variable_func.h
+ef = src/include/trans_expr.h
+vf = src/include/trans_variable.h
 ar = src/include/arithm.h
-f = src/include/comp_func.h
+f = src/include/trans_func.h
 
 tcpp = src/lang_parser/tokenizator.cpp
 ncpp = src/n_tree_func/n_node.cpp
@@ -21,15 +21,15 @@ mcpp = src/main.cpp
 ccpp = src/commands.cpp
 gcpp = graph_creator/create_graph.cpp
 pcpp = src/lang_parser/lang_parser.cpp
-cmcpp = src/translator/compiler.cpp
-cbcpp = src/translator/comp_body.cpp
-efcpp = src/translator/expr_func.cpp
-vfcpp = src/translator/variable_func.cpp
+cmcpp = src/translator/translator.cpp
+cbcpp = src/translator/trans_body.cpp
+efcpp = src/translator/trans_expr.cpp
+vfcpp = src/translator/trans_variable.cpp
 arcpp = src/translator/arithm_op.cpp
-fcpp = src/translator/comp_func.cpp
+fcpp = src/translator/trans_func.cpp
 
-all: file_reader.o tokenizator.o node_func.o main.o commands.o parser.o create_graph.o compiler.o compile_body.o expr_func.o var_func.o arithm.o ../stack/bin/functions.o ../stack/bin/global.o funcs.o
-	g++ -Wall -o bin/language bin/file_reader.o bin/tokenizator.o bin/node_func.o bin/main.o bin/commands.o bin/parser.o bin/create_graph.o bin/compiler.o bin/compile_body.o bin/expr_func.o bin/var_func.o bin/funcs.o bin/arithm.o ../stack/bin/global.o
+all: file_reader.o tokenizator.o node_func.o main.o commands.o parser.o create_graph.o translator.o trans_body.o expr_func.o var_func.o arithm.o ../stack/bin/functions.o ../stack/bin/global.o funcs.o
+	g++ -Wall -o bin/language bin/file_reader.o bin/tokenizator.o bin/node_func.o bin/main.o bin/commands.o bin/parser.o bin/create_graph.o bin/translator.o bin/trans_body.o bin/expr_func.o bin/var_func.o bin/funcs.o bin/arithm.o ../stack/bin/global.o
 
 tree_test:	node_func.o tree_t.o create_graph.o
 	g++ -Wall -o bin/tree_test bin/node_func.o bin/create_graph.o bin/tree_t.o
@@ -53,8 +53,8 @@ main.o: $(mcpp) $(l)
 commands.o: $(ccpp) $(cmd)
 	g++ $(d) -c $(ccpp) -o bin/commands.o
 
-compiler.o:	$(cmcpp) $(cm)
-	g++ $(d) -c $(cmcpp) -o bin/compiler.o
+translator.o:	$(cmcpp) $(cm)
+	g++ $(d) -c $(cmcpp) -o bin/translator.o
 
 create_graph.o: $(gcpp) $(g)
 	g++ $(d) -c $(gcpp) -o bin/create_graph.o
@@ -62,8 +62,8 @@ create_graph.o: $(gcpp) $(g)
 parser.o:	$(pcpp) $(l)
 	g++ $(d) -c $(pcpp) -o bin/parser.o
 
-compile_body.o: $(cbcpp) $(b)
-	g++ $(d) -c $(cbcpp) -o bin/compile_body.o
+trans_body.o: $(cbcpp) $(b)
+	g++ $(d) -c $(cbcpp) -o bin/trans_body.o
 
 expr_func.o: $(efcpp) $(ef)
 	g++ $(d) -c $(efcpp) -o bin/expr_func.o
