@@ -32,6 +32,13 @@ int expr_in_asm(Stack <variable_t> *vars, node_t *node)
         return 0;
     
     case VAR:
+        if (!find_var(vars, node->data.string))
+        {
+            LOG("[error]>>> variable was not defined in this scope\n");
+            printf(">>> compilation error: variable %s was not defined\n", node->data.string);
+            return ERR;
+        }
+
         error = push_var_in_asm(vars, node->data.string);
         return 0;
         

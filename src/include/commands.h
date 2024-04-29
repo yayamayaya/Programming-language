@@ -1,7 +1,7 @@
 #ifndef COMMANDS
 #define COMMANDS
 
-#define COMMANDS_NUMBER 23
+#define COMMANDS_NUMBER 24
 
 enum COMMANDS
 {
@@ -31,6 +31,7 @@ enum COMMANDS
     WHILE   = 0x12,
     RET     = 0x13,
     PRINT   = 0x14,
+    SCAN    = 0x15,
 
     BODY    = 0x0B,
     EXPR    = 0x0E,

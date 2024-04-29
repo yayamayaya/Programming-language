@@ -98,20 +98,39 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
             LOG("> return was found\n");
             error = expr_in_asm(vars, node->branches[0]);
             
-            //fprintf(asm_file, "pop dx\n\n");
-
             free_stk_frame(vars);
 
             _POP_REG("ax");
             _POP_REG("cx");
             _PUSH_REG("ax");
-            /*fprintf(asm_file, "mov cx,ax\n");
-            fprintf(asm_file, "mov, ax,0\n");*/
             _RET();
             return_flag = 1;
 
             break;
 
+        case SCAN:
+        {
+            LOG("> translating scan:\n");
+
+            _CHECK_NODE_NUM(1);
+            if (node->branches[0]->data_type != VAR)
+            {
+                LOG("[error]>>> fatal error, scan argument is not an variable\n");
+                return FATAL_ERR;
+            }
+
+            variable_t *var = find_var(vars, node->branches[0]->data.string);
+            if (!var)
+            {
+                LOG("[error]>>> variable %s was not defined in this scope\n", node->branches[0]->data.string);
+                printf("[error]>>> variable %s was not defined in this scope\n", node->branches[0]->data.string);
+                return VAR_DEF_NOT_F_ERR;
+            }
+
+            _IN();
+            _POP_REL(var->rel_address);
+            break;
+        }
         default:
             LOG(">>> undefined compilation operator, yet to define%40s\n", "[error]");
             return FATAL_ERR;
@@ -128,6 +147,7 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
     case CONN:
         switch (node->data.command)
         {
+            
         case BODY:
             error = compile_body(vars, node);
             break;

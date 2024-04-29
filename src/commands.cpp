@@ -1,6 +1,5 @@
 #include "include/commands.h"
 
-
 #ifdef SIMPL
 
 command_t commands[COMMANDS_NUMBER] = 
@@ -31,6 +30,7 @@ command_t commands[COMMANDS_NUMBER] =
     {WHILE, "while", 5},
     {RET, "return", 6},
     {PRINT, "print", 5},
+    {SCAN, "scan", 4},
 };
 
 #else
@@ -62,6 +62,7 @@ command_t commands[COMMANDS_NUMBER] =
     {WHILE, "shenber", 7},
     {RET, "sygeide", 7},
     {PRINT, "korsetsh", 8},
+    {SCAN, "scan", 4},
 };
     //{INCL, "include", 7},
 #endif
