@@ -1,6 +1,8 @@
 Elbasy pavlodar kalasy
 kraba
-    eu, syn 9 bolad
+    eu, syn brat
+    eu, scan pavlodar syn kalasy
+
     eu, bir 1 bolad
     eu, eki 0 bolad
     eu, ysh 0 bolad

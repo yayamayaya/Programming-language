@@ -1,6 +1,8 @@
 Elbasy pavlodar kalasy
 kraba
-    sygeide kotagym pavlodar 5 kalasy
+    eu, syn brat
+    eu, scan pavlodar syn kalasy
+    sygeide kotagym pavlodar syn kalasy
 nakin'
 
 kotagym pavlodar san kalasy

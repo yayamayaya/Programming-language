@@ -1,5 +1,54 @@
+Elbasy pavlodar kalasy
+kraba
+    eu, a brat
+    eu, e brat
+    eu, b brat
 
-Elbasy()
-{
-    
-}
+    eu, scan pavlodar a kalasy
+    eu, scan pavlodar e kalasy
+    eu, scan pavlodar b kalasy
+
+    kraba
+        sygeide syzyktyk pavlodar e men b kalasy
+    nakin' pavlodar a loge 0 kalasy eitkezinba
+
+    kraba
+        sygeide e_nol pavlodar a men b kalasy
+    nakin'  pavlodar e loge 0 kalasy eitkezinba
+
+    kraba
+        sygeide b_nol pavlodar a men e kalasy
+    nakin' pavlodar b loge 0 kalasy eitkezinba
+
+    eu, di dis pavlodar a men e men b kalasy bolad
+
+    sygeide di
+nakin'
+
+e_nol pavlodar a men b kalasy
+kraba
+    kraba
+        sygeide 0
+    nakin' pavlodar b loge 0 kalasy eitkezinba
+
+    sygeide pavlodar -1 * b / a kalasy ^ 0.5
+nakin'
+
+b_nol pavlodar a men e kalasy
+kraba
+    kraba
+        sygeide 0
+    nakin' pavlodar pavlodar a loge 0 kalasy loge pavlodar e loge 0 kalasy kalasy eitkezinba
+
+    sygeide syzyktyk pavlodar a men e kalasy
+nakin'
+
+dis pavlodar a men e men b kalasy
+kraba
+    sygeide e ^ 2 - 4 * a * b
+nakin'
+
+syzyktyk pavlodar e men b kalasy
+kraba
+    sygeide -1 * pavlodar b / e kalasy
+nakin'
