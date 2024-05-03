@@ -182,6 +182,8 @@ int call_func(Stack <variable_t> *vars, node_t *node)
 
     LOG("> changing cx loaction:\n");
     _PUSH_REG("cx");
+    _PUSH_NUM(function->rbp);
+    _POP_REG("cx");
 
     for (int i = 0; i < function->arg_num; i++)
     {
