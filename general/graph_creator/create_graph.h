@@ -4,8 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "../src/include/n_node.h"
-#include "../../common/logging/log.h"
+#include "../n_tree_func/n_node.h"
+#include "../../../common/logging/log.h"
+#include "../commands/commands.h"
 
 #define GPRAPH_CODE_START   "digraph G\n\
 {\n\
@@ -50,13 +51,13 @@
 
 #endif
 
-#define DOT_CALL    "dot graph_creator/graphcode.txt -Tpng -o"
+#define DOT_CALL    "dot graph/graphcode.txt -Tpng -o"
 
 #ifdef GRAPH
-#define _CREATE_GRAPH(arg1, arg2)\
-    create_gparh_code(arg1, arg2)
+#define _CREATE_GRAPH(arg1)\
+    create_gparh_code(arg1)
 #else
-#define _CREATE_GRAPH(arg1, arg2)
+#define _CREATE_GRAPH(arg1)
 #endif
 
 enum PNG_NAMES
@@ -65,8 +66,8 @@ enum PNG_NAMES
     STAGE = 1,
 };
 
-int create_gparh_code(node_t *node, const int PNG_TYPE);
-void print_png(const int PNG_TYPE);
+int create_gparh_code(node_t *node);
+void print_png();
 void clear_all_png();
 int go_through_tree(FILE *gcode, node_t *node);
 

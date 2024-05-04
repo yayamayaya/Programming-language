@@ -86,6 +86,8 @@ ret         ::= "sygeide" E
 
 */
 
+_INIT_LOG();
+
 node_t *pars_STR(token_t *tkns, int *pos);
 node_t *pars_body(token_t *tkns, int *pos);
 node_t *pars_func(token_t *tkns, int *pos);
@@ -106,6 +108,7 @@ node_t *pars_name(token_t *tkns, int *pos);
 node_t *create_syntax_tree(token_t *tkns)
 {
     assert(tkns);
+    _OPEN_LOG("logs/parsing.log");
     LOG("-----------------------------------------------\n\n");
     LOG("> creating syntax tree:\n");
 
@@ -125,6 +128,7 @@ node_t *create_syntax_tree(token_t *tkns)
         root = NULL;
     }
 
+    _CLOSE_LOG();
     return root;
 }
 

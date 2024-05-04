@@ -1,13 +1,12 @@
 #ifndef TOKENIZATOR
 #define TOKENIZATOR
 
-#include "../../../common/logging/log.h"
-#include "../../../common/file_reading/src/file_reading.h"
-#include "commands.h"
-#include "locale.h"
-#include "n_node.h"
-#include "ctype.h"
-#include "string.h"
+#include "../../../../common/logging/log.h"
+#include "../../../../common/file_reading/src/file_reading.h"
+#include "../../../general/commands/commands.h"
+#include "../../../general/n_tree_func/n_node.h"
+#include <ctype.h>
+#include <string.h>
 
 #ifdef DEBUG
 #define PRINT_TOKENS() token_dump(log_file, *tokens, token_number)

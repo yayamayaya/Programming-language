@@ -1,4 +1,4 @@
-#include "include/commands.h"
+#include "commands.h"
 
 #ifdef SIMPL
 

@@ -3,6 +3,19 @@
 
 #define COMMANDS_NUMBER 24
 
+enum DATA_TYPES
+{
+    NUM         = 1,
+    OP          = 2,
+    VAR         = 3,
+    FUNC        = 4,
+    CONN        = 10,
+
+    //GRPS
+    VAR_OP      = 0x40,
+    AR_OP       = 0x20,
+};
+
 enum COMMANDS
 {
     PLUS    = 0x21,

@@ -5,18 +5,20 @@
 token_t *token_realloc(token_t *token_arr, int arr_size);
 token_t detect_token(char *buff, int *pos);
 
-//TO DO желательно переделать
+_INIT_LOG();
 
 int tokenize(token_t **tokens, const char *file_loc)
 {
     //setlocale(LC_ALL, "ru_RU");
-
+    _OPEN_LOG("logs/tokenizator.log");
     char *buff = NULL;
     int file_size = 0;
     int error = file_read(&buff, &file_size, file_loc);
     if (error)
     {
+        LOG("[error]>>> file reading error\n");
         free(buff);
+        _CLOSE_LOG();
         return error;
     }
     
@@ -26,6 +28,7 @@ int tokenize(token_t **tokens, const char *file_loc)
     {
         LOG(">>> couldn't allocate memory for token array%40s\n", "[error]");
         free(buff);
+        _CLOSE_LOG();
         return TOK_MEM_ALC_ERR;
     }
     int token_number = 0;
@@ -46,6 +49,7 @@ int tokenize(token_t **tokens, const char *file_loc)
             free(buff);
             free_tok_strings(token_arr);
             free(token_arr);
+            _CLOSE_LOG();
             return TOK_NULL_STR;
         }
         token_number++;
@@ -62,6 +66,8 @@ int tokenize(token_t **tokens, const char *file_loc)
 
     LOG(">> tokenizator worked successfull, token array pointer is: %p\n", *tokens);
     PRINT_TOKENS();
+
+    _CLOSE_LOG();
     free(buff);
 
     return 0;
@@ -85,7 +91,7 @@ token_t *token_realloc(token_t *token_arr, int arr_size)
 
 token_t detect_token(char *buff, int *pos)
 {
-    token_t token = {0};
+    token_t token = {};
 
     double number_holder = 0;
     int n = 0;

@@ -1,13 +1,17 @@
 #include "create_graph.h"
 
-int create_gparh_code(node_t *node, const int PNG_TYPE) //передавать название фотографии через аргумент и объеденять через snprintf
+_INIT_LOG();
+
+int create_gparh_code(node_t *node) //передавать название фотографии через аргумент и объеденять через snprintf
 {
     assert(node);
+    _OPEN_LOG("logs/graph_creation.log");
 
-    FILE *gcode = fopen("graph_creator/graphcode.txt", "wb");
+    FILE *gcode = fopen("graph/graphcode.txt", "wb");
     if (!gcode)
     {
         LOG(">>> graphcode file couldn't open%40s\n", "[error]");
+        _CLOSE_LOG();
         return ERR;
     }
     setbuf(gcode, NULL);
@@ -18,29 +22,18 @@ int create_gparh_code(node_t *node, const int PNG_TYPE) //передавать �
     LOG(">> tree was read succes fully\n");
 
     fclose(gcode);
-    print_png(EXPRESSION);
+    print_png();
 
+    _CLOSE_LOG();
     return NO_ERR;
 }
 
-void print_png(const int PNG_TYPE)
+void print_png()
 {
     static int png_number = 0;
     char png_call[200] = {0};
 
-    switch (PNG_TYPE)
-    {
-    case EXPRESSION:
-        snprintf(png_call, sizeof(png_call), "%s%s", DOT_CALL, "syntax_tree.png");
-        break;
-    /*case STAGE:
-        snprintf(png_call, sizeof(png_call), "%sgraph_creator/stages/picture%d.png", picture_num);
-        picture_num++;
-        break;*/
-    default:
-        LOG(">>> fatal error occured while png printing");
-        break;
-    }
+    snprintf(png_call, sizeof(png_call), "%s%s", DOT_CALL, "graph/syntax_tree.png");
 
     png_number++;
     system(png_call);
