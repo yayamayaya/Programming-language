@@ -8,3 +8,7 @@ src/compiler/описание операторов командами asm.txt
 ak.txt
 programms/test.txt
 .vscode/settings.json
+backend/graph/graphcode.txt
+data/tree.txt
+frontend/graph/graphcode.txt
+general/graph_creator/graphcode.txt
