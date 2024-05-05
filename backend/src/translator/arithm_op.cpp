@@ -2,6 +2,8 @@
 
 void turn_op_to_num(node_t *node, double number);
 
+_INIT_LOG();
+
 int calc_consts(node_t *node)
 {
     assert(node);
@@ -18,7 +20,6 @@ int calc_consts(node_t *node)
             double result = make_operation(node->branches[L]->data.number, node->branches[R]->data.number, node->data.command);
 
             turn_op_to_num(node, result);
-            LOG("> operation was done, operation node was translated to number node\n");
             return 0;
         }
     }
@@ -42,7 +43,6 @@ void turn_op_to_num(node_t *node, double number)
 
 double make_operation(double first_arg, double second_arg, const unsigned char op)
 {
-    LOG("> making an operation: %#04x beetwen %.2lf and %.2lf\n", op, first_arg, second_arg);
     double result = 0;
 
     switch (op)
@@ -60,7 +60,7 @@ double make_operation(double first_arg, double second_arg, const unsigned char o
     case SLASH:     
         if (!second_arg)
         {
-            LOG("[error]>>> cannot divide into 0\n");
+            printf("[error]>>> cannot divide into 0\n");
             return 0;
         }
         _ARITHM_OP(/);
@@ -68,10 +68,9 @@ double make_operation(double first_arg, double second_arg, const unsigned char o
     case POW:       result = pow(first_arg, second_arg);    break;
 
     default:
-        LOG("[error]>>> fatal error in making an operation\n");
+        printf("[error]>>> fatal error in making an operation\n");
         return 0;
     }
-
-    LOG("> result of calc is: %lf\n", result);     
+     
     return result;
 }
