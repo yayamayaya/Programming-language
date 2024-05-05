@@ -2,14 +2,12 @@
 
 //TO DO избавиться от 4 переменных ниже
 
-FILE *asm_file = NULL;
-int free_mem_ptr = 0;
-Stack <variable_t> *global_vars = NULL;
-Stack <func_t> *funcs = NULL;
+_INIT_LOG();
 
-int compiler(node_t *root)
+int translator(node_t *root)
 {
     assert(root);
+    _OPEN_LOG("logs/translator.log");
 
     LOG("------------------------STARTING COMPILATION------------------------------\n");
     LOG("> calculating constants:\n");
@@ -19,33 +17,34 @@ int compiler(node_t *root)
     LOG("> const calculations were done\n");
 
     LOG("\n\n> starting assembly translation:\n");
-    asm_file = fopen("data/code.txt", "wb");
+    FILE *asm_file = fopen("../data/code.txt", "wb");
     if (!asm_file)
     {
         LOG(">>> cannot open assembly file %40s\n", "[error]");
+        _CLOSE_LOG();
         return ASM_F_OPEN_ERR;
     }
 
     LOG("> creating functions and global variables stacks\n");
-    Stack <func_t> functions = {};
-    funcs = &functions;
-    funcs->stackCtor(10, "logs/func_stack.log");
-
     Stack <variable_t> gl_vars = {};
-    global_vars = &gl_vars;
-    global_vars->stackCtor(10, "logs/global_var.log");
+    Stack <func_t> funcs = {};
+
+    memory_work memory = {0, &gl_vars, &funcs};
+
+    memory.funcs->stackCtor(10, "logs/func_stack.log");
+    memory.global_vars->stackCtor(10, "logs/global_var.log");
 
     LOG("> compiling programm\n");
-    error = compile_func(root);
+    error = compile_func(asm_file, &memory, root);
     if (error)
         {LOG("translation error occured%40s\n", "[error]");}
     else
         {LOG(">> compilation successfull\n");}
 
-    global_vars->stackDtor();
-    funcs->stackDtor();
+    memory.global_vars->stackDtor();
+    memory.funcs->stackDtor();
     fclose(asm_file);
-    asm_file = NULL;
+    _CLOSE_LOG();
 
     return error;
 }

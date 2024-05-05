@@ -1,47 +1,61 @@
 #include "../include/body.h"
 
-int make_body_command(Stack <variable_t> *vars, node_t *node);
-void free_local_mem(Stack <variable_t> *vars, int var_num);
-void free_stk_frame(Stack <variable_t> *vars);
+int make_body_command(FILE* asm_file, memory_work *memory, Stack <variable_t> *vars, node_t *node);
+void free_local_mem(FILE *asm_file, Stack <variable_t> *vars, int var_num);
+void var_dump(Stack <variable_t> *vars);
+//void free_stk_frame(Stack <variable_t> *vars);
 
 //Разбить большую функцию, избавиться от глобальных переменных,  сделать общую структур для глобально используемых переменных
 
-int first_lcl_var_pos = 0;
-int last_lcl_var_pos = 0;
+_INIT_LOG();
 
-int compile_body(Stack <variable_t> *vars, node_t *body_root)
+/*int first_lcl_var_pos = 0;
+int last_lcl_var_pos = 0;*/
+
+int translate_body(FILE* asm_file, memory_work *memory, Stack <variable_t> *vars, node_t *body_root)
 {
     assert(asm_file);
+    assert(memory);
     assert(body_root);
     assert(vars);
-    if (body_root->data_type != CONN || body_root->data.command != BODY)
+
+    _OPEN_N_LOG("logs/body%d.log");
+
+    if (body_root->data_type != CONN)
     {
-        LOG("fatal error occured, body root is not a body node%40s\n", "[error]");
+        LOG("fatal error occured, body root is not a connection node%40s\n", "[error]");
+        _CLOSE_LOG();
         return BODY_IS_NOT_NODE_ERR;
     }
-    first_lcl_var_pos = 0;
-    last_lcl_var_pos = 0;
+    int first_lcl_var_pos = 0;
+    int last_lcl_var_pos = 0;
 
-    first_lcl_var_pos = free_mem_ptr;
+    first_lcl_var_pos = vars->getStackSize();
     for (int i = 0; i < body_root->branch_number; i++)
     {
-        int error = make_body_command(vars, body_root->branches[i]);
+        int error = make_body_command(asm_file, memory, vars, body_root->branches[i]);
         if (error)
+        {
+            _CLOSE_LOG();
             return error;
+        }
     }
     LOG("> body was read successfully\n");
-    last_lcl_var_pos = free_mem_ptr;
-    var_dump(vars);
+    last_lcl_var_pos = vars->getStackSize();
 
-    free_local_mem(vars, last_lcl_var_pos - first_lcl_var_pos);
+    var_dump(vars);
+    free_local_mem(asm_file, vars, last_lcl_var_pos - first_lcl_var_pos);
+
+    _CLOSE_LOG();
 
     return 0;
 }
 
-int make_body_command(Stack <variable_t> *vars, node_t *node)
+int make_body_command(FILE* asm_file, memory_work *memory, Stack <variable_t> *vars, node_t *node)
 {
     assert(node);
     assert(asm_file);
+    assert(memory);
     assert(vars);
 
     LOG("> searching for body command:\n");
@@ -54,13 +68,13 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
         {
 
         case E:
-            error = assign_variable(vars, node);
+            error = assign_variable(asm_file, memory, vars, node);
             break;
         
         case IF:
             _CHECK_NODE_NUM(2);
 
-            error = expr_in_asm(vars, node->branches[R]->branches[0]);
+            error = expr_in_asm(asm_file, memory, vars, node->branches[R]->branches[0]);
             if (error)
                 return error;
 
@@ -68,7 +82,7 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
             _JE_LABEL('L', node);
             _POP_REG("bx");
 
-            error = compile_body(vars, node->branches[L]);
+            error = translate_body(asm_file, memory, vars, node->branches[L]);
 
             _LABEL('L', node);
             _POP_REG("bx");
@@ -79,7 +93,7 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
 
             LOG("> translating while\n");
             _LABEL('S', node);
-            error = expr_in_asm(vars, node->branches[R]->branches[0]);
+            error = expr_in_asm(asm_file, memory, vars, node->branches[R]->branches[0]);
             if (error)
                 return error;
 
@@ -87,7 +101,7 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
             _JE_LABEL('L', node);
             _POP_REG("bx");
 
-            error = compile_body(vars, node->branches[L]);
+            error = translate_body(asm_file, memory, vars, node->branches[L]);
 
             _JMP_LABEL('S', node);
             _LABEL('L', node);
@@ -96,15 +110,13 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
 
         case RET:
             LOG("> return was found\n");
-            error = expr_in_asm(vars, node->branches[0]);
+            error = expr_in_asm(asm_file, memory, vars, node->branches[0]);
             
-            free_stk_frame(vars);
-
             _POP_REG("ax");
             _POP_REG("cx");
             _PUSH_REG("ax");
             _RET();
-            return_flag = 1;
+            //return_flag = 1;
 
             break;
 
@@ -119,16 +131,10 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
                 return FATAL_ERR;
             }
 
-            variable_t *var = find_var(vars, node->branches[0]->data.string);
-            if (!var)
-            {
-                LOG("[error]>>> variable %s was not defined in this scope\n", node->branches[0]->data.string);
-                printf("[error]>>> variable %s was not defined in this scope\n", node->branches[0]->data.string);
-                return VAR_DEF_NOT_F_ERR;
-            }
-
             _IN();
-            _POP_REL(var->rel_address);
+            
+            error = pop_var_in_asm(asm_file, memory->global_vars, vars, node->branches[0]->data.string);
+
             break;
         }
         default:
@@ -141,35 +147,20 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
         if (find_var(vars, node->data.string))
             {LOG("variable already exists, continuing forward\n");}
         else
-            error = create_variable(vars, node);
+            error = create_variable(asm_file, vars, node);
         break;
 
     case CONN:
-        switch (node->data.command)
-        {
-            
-        case BODY:
-            error = compile_body(vars, node);
-            break;
+        _CHECK_NODE_NUM(1);
 
-        case EXPR:
-            _CHECK_NODE_NUM(1);
+        error = expr_in_asm(asm_file, memory, vars, node);
 
-            error = expr_in_asm(vars, node);
+        _POP_REG("dx");
 
-            _POP_REG("dx");
-            break;
-
-        default:
-            LOG(">>> undefined compilation connection, yet to define%40s\n", "[error]");
-            return FATAL_ERR;
-            break;
-
-        }
         break;
-    
+
     case FUNC:
-        error = call_func(vars, node);
+        error = call_func(asm_file, memory, vars, node);
         break;
 
     default:
@@ -180,17 +171,17 @@ int make_body_command(Stack <variable_t> *vars, node_t *node)
     return error;
 }
 
-void free_local_mem(Stack <variable_t> *vars, int var_num)
+void free_local_mem(FILE *asm_file, Stack <variable_t> *vars, int var_num)
 {
     assert(vars);
+    assert(asm_file);
     
-    LOG("> freeing %d local variables:\n", var_num);
+    LOG("> freeing %d local variables:\n", vars->getStackSize());
     for (int i = 0; i < var_num; i++)
     {
-        variable_t var_to_del = {0};
+        variable_t var_to_del = {};
         vars->stackPop(&var_to_del);
         _FREE_LCL_MEM(var_to_del.rel_address);
-        free_mem_ptr--;
     }
     
     LOG("> current variables number: %d\n", vars->getStackSize());
@@ -200,7 +191,19 @@ void free_local_mem(Stack <variable_t> *vars, int var_num)
     return;
 }
 
-void free_stk_frame(Stack <variable_t> *vars)
+void var_dump(Stack <variable_t> *vars)
+{
+    assert(vars);
+
+    LOG("\n ----------------------VARIABLES DUMP:------------------------\n");
+
+    for (int i = 0; i < vars->getStackSize(); i++)
+        LOG("%d) %s, memory location: %d\n", i, vars->getDataOnPos(i).var, vars->getDataOnPos(i).rel_address);
+    
+    LOG("--------------------------DUMP ENDED----------------------------\n");
+}
+
+/*void free_stk_frame(Stack <variable_t> *vars)
 {
     assert(vars);
 
@@ -209,4 +212,4 @@ void free_stk_frame(Stack <variable_t> *vars)
         _FREE_LCL_MEM(i);
 
     return;
-}
+}*/

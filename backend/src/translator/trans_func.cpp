@@ -1,47 +1,54 @@
 #include "../include/trans_func.h"
 
-int stk_frame_pos = 0;
-int return_flag = 0;
+/*int stk_frame_pos = 0;
+int return_flag = 0;*/
 
-void allocate_stk_frames(node_t *node);
-int translate_function(node_t *node);
-int create_global_vars(node_t *node);
+void mem_to_call(int *mem_size, node_t *node);
+int create_global_vars(FILE *asm_file, memory_work *memory, node_t *node);
+int translate_function(FILE *asm_file, memory_work *memory, node_t *node);
+
+_INIT_LOG();
 
 //TO DO посокращать длинные строки через функции, убрать костыль с Elbasy, венести кодогенерацию в дефайны
 
-int compile_func(node_t *root)
+int compile_func(FILE *asm_file, memory_work *memory, node_t *root)
 {
-    assert(funcs);
+    assert(memory);
+    assert(asm_file);
     assert(root);
+    _OPEN_LOG("logs/function_translation.log");
     if (root->data_type != CONN || root->data.command != PROGRAMM)
     {
         LOG(">>> root is not a PROGRAMM node, programm will not be compiled%40s\n", "[error]");
+        _CLOSE_LOG();
         return ROOT_NOT_PROG_ERR;
     }
     
     LOG("> starting frame allocation for global variables\n");
     for (int br = 0; br < root->branch_number; br++)
         if (root->branches[br]->data_type == VAR || root->branches[br]->data_type == OP)
-            stk_frame_pos++;
-    LOG("> frame allocation complete, global variables number is: %d\n", stk_frame_pos);
+            memory->free_mem_ptr++;
+    LOG("> frame allocation complete, global variables number is: %d\n", memory->free_mem_ptr);
 
-    LOG("> starting stack frames allocations for functions\n");
+    LOG("> detecting memory size for call of each function\n");
     for (int br = 0; br < root->branch_number; br++)
         if (root->branches[br]->data_type == FUNC)
         {
             const char *func_name = root->branches[br]->data.string;
             int arg_num = root->branches[br]->branches[L]->branch_number;
             LOG("> function %s definition was found\n", func_name);
-            func_t func = {func_name, arg_num, stk_frame_pos};
-            funcs->stackPush(func);
-            allocate_stk_frames(root->branches[br]);
-        }
-    stk_frame_pos = 0;
-    LOG("> stack frame allocations were completed\n");
 
-    if (find_func("Elbasy") == NULL)
+            int mem_size = 0;
+            mem_to_call(&mem_size, root->branches[br]);
+            func_t func = {func_name, arg_num, mem_size};
+            memory->funcs->stackPush(func);
+        }
+    LOG("> memory size allocations were completed\n");
+
+    if (find_func(memory->funcs, "Elbasy") == NULL)
     {
         LOG(">>> main function not found, comp. error%40s\n", "[error]");
+        _CLOSE_LOG();
         return MAIN_NOT_FOUND;
     }
 
@@ -50,9 +57,12 @@ int compile_func(node_t *root)
     for (int br = 0; br < root->branch_number; br++)
         if (root->branches[br]->data_type != FUNC)
         {
-            error = create_global_vars(root->branches[br]);
+            error = create_global_vars(asm_file, memory, root->branches[br]);
             if (error)
+            {
+                _CLOSE_LOG();
                 return error;
+            }
         }
     
     _CALL_MAIN();
@@ -61,31 +71,35 @@ int compile_func(node_t *root)
     for (int br = 0; br < root->branch_number; br++)
         if (root->branches[br]->data_type == FUNC)
         {
-            error = translate_function(root->branches[br]);
+            error = translate_function(asm_file, memory, root->branches[br]);
             if (error)
+            {
+                _CLOSE_LOG();
                 return error;
+            }
         }
 
     LOG("functions compilations were done\n");
+    _CLOSE_LOG();
     return error;
 }
 
-void allocate_stk_frames(node_t *node)
+void mem_to_call(int *mem_size, node_t *node)
 {
     for (int br = 0; br < node->branch_number; br++)
-        allocate_stk_frames(node->branches[br]);
+        mem_to_call(mem_size, node->branches[br]);
 
     if (node->data_type == VAR)
-        stk_frame_pos++;
+        (*mem_size)++;
 }
 
-int create_global_vars(node_t *node)
+int create_global_vars(FILE *asm_file, memory_work *memory, node_t *node)
 {
     assert(node);
+    assert(memory);
     assert(asm_file);
-    assert(funcs);
 
-    LOG("allocating global variable\n");
+    LOG("creating global variable\n");
     int error = 0;
     switch (node->data_type)
     {
@@ -96,14 +110,14 @@ int create_global_vars(node_t *node)
             return OP_NOT_ASS_ERR;
         }
 
-        error = assign_variable(global_vars, node);
+        error = assign_variable(asm_file, memory, memory->global_vars, node);
         break;
 
     case VAR:
-        if (find_var(global_vars, node->data.string))
-            {LOG("variable already exists, continuing forward\n");}
+        if (find_var(memory->global_vars, node->data.string))
+            {LOG("> variable already exists, continuing forward\n");}
         else
-            error = create_variable(global_vars, node);
+            error = create_variable(asm_file, memory->global_vars, node);
         break;
     
     default:
@@ -114,12 +128,15 @@ int create_global_vars(node_t *node)
     return error;
 }
 
-int translate_function(node_t *node)
+int translate_function(FILE *asm_file, memory_work *memory, node_t *node)
 {
+    assert(asm_file);
+    assert(node);
     assert(node->data_type == FUNC);
+    assert(memory);
     LOG("> translating a function to asm code:\n");
 
-    func_t *func = find_func(node->data.string);
+    func_t *func = find_func(memory->funcs, node->data.string);
     if (!func)
     {
         LOG(">>> function def. wasn't found, fatal error%40s\n", "[error]");
@@ -131,11 +148,12 @@ int translate_function(node_t *node)
     Stack <variable_t> vars = {};
     vars.stackCtor(10, "logs/vars.log");
 
+    //int rel_address = 0;
     int error = 0;
     LOG("> allocating memory for the arguments:\n");
     for (int arg = 0; arg < node->branches[L]->branch_number; arg++)
     {
-        error = create_variable(&vars, node->branches[L]->branches[arg]);
+        error = create_variable(asm_file, &vars, node->branches[L]->branches[arg]);
         if (error)
         {
             vars.stackDtor();
@@ -143,31 +161,35 @@ int translate_function(node_t *node)
         }
     }
 
-    int gl_var_mem_ptr = free_mem_ptr;
-    free_mem_ptr = 0;
+    //int gl_var_mem_ptr = free_mem_ptr;
+    //free_mem_ptr = 0;
     LOG("> arguments were allocated, compiling a body:\n");
-    error = compile_body(&vars, node->branches[R]);
+    error = translate_body(asm_file, memory, &vars, node->branches[R]);
     LOG("> body compilation finished\n");
-    free_mem_ptr = gl_var_mem_ptr;
+    //free_mem_ptr = gl_var_mem_ptr;
 
-    if (!return_flag)
+    /*if (!return_flag)
     {
         LOG(">>> return in function wasn't found, compilation error%40s\n", "[error]");
         error = RET_NOT_FOUND_ERR;
-    }
+    }*/
     vars.stackDtor();
-    return_flag = 0;
+    //return_flag = 0;
 
     return error;
 }
 
-int call_func(Stack <variable_t> *vars, node_t *node)
+int call_func(FILE *asm_file, memory_work *memory, Stack <variable_t> *vars, node_t *node)
 {
-    assert(funcs);
+    assert(asm_file);
+    assert(memory);
+    assert(vars);
     assert(node);
     assert(node->data_type == FUNC);
 
-    func_t *function = find_func(node->data.string);
+    LOG("> ---------------------------------------------FUNCTION CALL FOUND--------------------------\n");
+
+    func_t *function = find_func(memory->funcs, node->data.string);
     if (!function)
     {
         LOG(">>> function definition wasn't found, compilation error%40s\n", "[error]");
@@ -176,18 +198,17 @@ int call_func(Stack <variable_t> *vars, node_t *node)
     if (function->arg_num != node->branches[0]->branch_number)
     {
         LOG(">>> the number of the arguments in %s function call does not match the arg number in function%40s\n", function->func, "[error]");
-
         return ARG_NUM_NOT_MATCH_ERR;
     }
 
-    LOG("> changing cx loaction:\n");
+    LOG("> allocating stack frame:\n");
     _PUSH_REG("cx");
-    _PUSH_NUM(function->rbp);
+    _PUSH_NUM(memory->free_mem_ptr);
     _POP_REG("cx");
 
     for (int i = 0; i < function->arg_num; i++)
     {
-        int error = expr_in_asm(vars, node->branches[0]->branches[i]);
+        int error = expr_in_asm(asm_file, memory, vars, node->branches[0]->branches[i]);
         if (error)
         {
             LOG("> variable was not defined in this scope%40s\n", "[error]");
@@ -197,10 +218,11 @@ int call_func(Stack <variable_t> *vars, node_t *node)
         _POP_REL(i);
     }
     _CALL_FUNC(function->func);
+    memory->free_mem_ptr += function->mem_size;
     return 0;
 }
 
-func_t *find_func(const char *func_name)
+func_t *find_func(Stack <func_t> *funcs, const char *func_name)
 {
     assert(funcs);
     LOG("> searching for function\n");
