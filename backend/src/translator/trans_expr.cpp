@@ -46,7 +46,7 @@ int expr_in_asm(FILE *asm_file, memory_work *memory, Stack <variable_t> *vars, n
 
         break;
         
-    case CONN:
+    case LINKER:
         error = expr_in_asm(asm_file, memory, vars, node->branches[0]);
 
         break;

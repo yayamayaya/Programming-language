@@ -31,10 +31,12 @@
                                                                                 node, node->data.command
 #define GRAPH_VAR_NODE      "\tnode_num%p [shape = \"record\", color=\"#70578a\", label = \"%s\"];\n", \
                                                                                 node, node->data.string
-#define GRAPH_CONN_NODE     "\tnode_num%p [shape = \"record\", color=\"#003366\", label = \"%#04x\"];\n", \
-                                                                                node, node->data.command   
+#define GRAPH_CONN_NODE     "\tnode_num%p [shape = \"record\", color=\"#003366\", label = \"LINKER\"];\n", \
+                                                                                node 
 #define GRAPH_FUNC_NAME_NODE      "\tnode_num%p [shape = \"record\", color=\"#001296\", label = \"%s\"];\n", \
                                                                                 node, node->data.string
+#define GRAPH_MAIN_NODE     "\tnode_num%p [shape = \"record\", color=\"#0111c0\", label = \"MAIN\"];\n", \
+                                                                                node
 
 #else
 
@@ -44,11 +46,12 @@
                                                                                 node, node->data.command, node, node->branch_number
 #define GRAPH_VAR_NODE      "\tnode_num%p [shape = \"record\", color=\"#70578a\", label = \"{%s | {VAR | %p | %db}}\"];\n", \
                                                                                 node, node->data.string, node, node->branch_number
-#define GRAPH_CONN_NODE     "\tnode_num%p [shape = \"record\", color=\"#003366\", label = \"{%#04x | {CONN | %p | %db}}\"];\n", \
-                                                                                node, node->data.command, node, node->branch_number   
+#define GRAPH_CONN_NODE     "\tnode_num%p [shape = \"record\", color=\"#003366\", label = \"{LINKER | {%p | %db}}\"];\n", \
+                                                                                node, node, node->branch_number   
 #define GRAPH_FUNC_NAME_NODE      "\tnode_num%p [shape = \"record\", color=\"#001296\", label = \"{%s | {FUNC | %p | %db}}\"];\n", \
                                                                                 node, node->data.string, node, node->branch_number
-
+#define GRAPH_MAIN_NODE     "\tnode_num%p [shape = \"record\", color=\"#0111c0\", label = \"{MAIN | {%p | %db}}\"];\n", \
+                                                                                node, node, node->branch_number
 #endif
 
 #define DOT_CALL    "dot graph/graphcode.txt -Tpng -o"

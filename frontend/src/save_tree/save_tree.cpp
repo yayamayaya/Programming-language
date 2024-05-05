@@ -39,13 +39,14 @@ void write_tree(FILE *file, node_t *node)
     case FUNC:
         fprintf(file, "#%s#", node->data.string);
         break;
-    
+
     case NUM:
         fprintf(file, "#%lf#", node->data.number);
         break;
 
     case OP:
-    case CONN:
+    case LINKER:
+    case MAIN:
         fprintf(file, "#%d#", node->data.command);
         break;
 

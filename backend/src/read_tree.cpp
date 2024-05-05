@@ -154,8 +154,24 @@ int read_data(data_t *data_ptr, const char *buff, int *pos, int data_type)
         break;
     }
 
+    case MAIN:
+    {
+        int cmd = 0;
+        sscanf(buff + *pos, "#%d#%n", &cmd, &n);
+        if (!n)
+            break;
+
+        char *string = (char *)calloc(5, sizeof(char));
+        sprintf(string, "main");
+        data.string = string;
+        *pos += n;
+
+        LOG("> main scanned\n");
+        break;
+    }
+
     case OP:
-    case CONN:
+    case LINKER:
     {
         LOG("scanning a command\n");
         int cmd = 0;

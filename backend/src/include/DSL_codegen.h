@@ -21,9 +21,9 @@
 #define _FREE_LCL_MEM(addr)     _PR("mov, [cx+%d], 0\n", addr)
 #define _IN()                   _PR("in\n")
 
-#define _CALL_MAIN(main_rbp)    _PR("mov cx,%d\n", main_rbp);                             \
+#define _CALL_MAIN(main_rbp)    _PR("mov cx,%d\n", main_rbp);                     \
                                 _PR("push cx\n");                                 \
-                                _PR("call Elbasy\n");                             \
+                                _PR("call main\n");                               \
                                 _PR("out\n");                                     \
                                 _PR("halt\n\n\n")                            
 

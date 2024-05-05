@@ -9,7 +9,8 @@ enum DATA_TYPES
     OP          = 2,
     VAR         = 3,
     FUNC        = 4,
-    CONN        = 10,
+    LINKER      = 10,
+    MAIN        = 15,
 
     //GRPS
     VAR_OP      = 0x40,
@@ -30,7 +31,7 @@ enum COMMANDS
     LOG_B   = 0x2A,
     LOG_BE  = 0x2B,    
 
-    E       = 0x41,
+    ASSIGN  = 0x41,
     VAR_END = 0x42,
 
     OP_BR   = 0x01,
@@ -60,5 +61,15 @@ typedef struct
 } command_t;
 
 extern command_t commands[COMMANDS_NUMBER];
+
+#define _CHECK_FOR_MAIN(arg)                \
+    if (!strcmp(arg, "Elbasy"))             \
+    {                                       \
+        LOG("> main was found\n");          \
+        (*main_flag)++;                     \
+        kill_tree(func, DONT_KILL_STRS);    \
+        func = create_node(0, MAIN, 0);   \
+    }
+    
 
 #endif

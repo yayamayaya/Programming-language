@@ -22,9 +22,9 @@ int translate_body(FILE* asm_file, memory_work *memory, Stack <variable_t> *vars
     assert(body_root);
     assert(vars);
 
-    if (body_root->data_type != CONN)
+    if (body_root->data_type != LINKER)
     {
-        LOG("fatal error occured, body root is not a connection node%40s\n", "[error]");
+        LOG(">>> fatal error occured, body root is not a connection node%40s\n", "[error]");
         return BODY_IS_NOT_NODE_ERR;
     }
     int first_lcl_var_pos = 0;
@@ -62,14 +62,14 @@ int make_body_command(FILE* asm_file, memory_work *memory, Stack <variable_t> *v
         switch (node->data.command)
         {
 
-        case E:
+        case ASSIGN:
             error = assign_variable(asm_file, memory, vars, node);
             break;
         
         case IF:
             _CHECK_NODE_NUM(2);
 
-            error = expr_in_asm(asm_file, memory, vars, node->branches[R]->branches[0]);
+            error = expr_in_asm(asm_file, memory, vars, node->branches[L]->branches[0]);
             if (error)
                 return error;
 
@@ -77,7 +77,7 @@ int make_body_command(FILE* asm_file, memory_work *memory, Stack <variable_t> *v
             _JE_LABEL('L', node);
             _POP_REG("bx");
 
-            error = translate_body(asm_file, memory, vars, node->branches[L]);
+            error = translate_body(asm_file, memory, vars, node->branches[R]);
 
             _LABEL('L', node);
             _POP_REG("bx");
@@ -88,7 +88,7 @@ int make_body_command(FILE* asm_file, memory_work *memory, Stack <variable_t> *v
 
             LOG("> translating while\n");
             _LABEL('S', node);
-            error = expr_in_asm(asm_file, memory, vars, node->branches[R]->branches[0]);
+            error = expr_in_asm(asm_file, memory, vars, node->branches[L]->branches[0]);
             if (error)
                 return error;
 
@@ -96,7 +96,7 @@ int make_body_command(FILE* asm_file, memory_work *memory, Stack <variable_t> *v
             _JE_LABEL('L', node);
             _POP_REG("bx");
 
-            error = translate_body(asm_file, memory, vars, node->branches[L]);
+            error = translate_body(asm_file, memory, vars, node->branches[R]);
 
             _JMP_LABEL('S', node);
             _LABEL('L', node);
@@ -111,7 +111,6 @@ int make_body_command(FILE* asm_file, memory_work *memory, Stack <variable_t> *v
             _POP_REG("cx");
             _PUSH_REG("ax");
             _RET();
-            //return_flag = 1;
 
             break;
 
@@ -156,7 +155,7 @@ int make_body_command(FILE* asm_file, memory_work *memory, Stack <variable_t> *v
         break;
     }
 
-    case CONN:
+    case LINKER:
         _CHECK_NODE_NUM(1);
 
         error = expr_in_asm(asm_file, memory, vars, node);

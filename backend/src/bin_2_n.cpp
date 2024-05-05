@@ -2,7 +2,7 @@
 
 node_t *convert_tree(node_t *node)
 {
-    if (node->data_type == CONN && !(node->branch_number != 2 || node->branches[R]->data_type != CONN))
+    if (node->data_type == LINKER && !(node->branch_number != 2 || node->branches[R]->data_type != LINKER))
     {   
         node_t *child_node = convert_tree(node->branches[R]);
         node->branches[R] = NULL;

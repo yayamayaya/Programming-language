@@ -61,12 +61,16 @@ int go_through_tree(FILE *gcode, node_t *node)
     case VAR:
         fprintf(gcode, GRAPH_VAR_NODE);
         break;
-    case CONN:
+    case LINKER:
         fprintf(gcode, GRAPH_CONN_NODE);
         break;
     case FUNC:
         fprintf(gcode, GRAPH_FUNC_NAME_NODE);
         break;
+    case MAIN:
+        fprintf(gcode, GRAPH_MAIN_NODE);
+        break;
+
         
     default:
         LOG(">>> fatal error: couldn't create a graph code of that type%40s\n", "[error]");

@@ -4,7 +4,7 @@
 
 command_t commands[COMMANDS_NUMBER] = 
 {
-    {E, "=", 1},
+    {ASSIGN, "=", 1},
     {VAR_END, "end", 3},
     {ZAP, ",", 1},
 
@@ -36,7 +36,7 @@ command_t commands[COMMANDS_NUMBER] =
 #else
 command_t commands[COMMANDS_NUMBER] = 
 {
-    {E, "bolad", 5},
+    {ASSIGN, "bolad", 5},
     {VAR_END, "brat", 4},
     {ZAP, "men", 3},
 

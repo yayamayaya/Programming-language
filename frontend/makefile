@@ -1,5 +1,5 @@
 CC 		= g++
-CFLAGS 	= -Wall -Wextra -g -DDEBUG -DGRAPH -DSIMPL
+CFLAGS 	= -Wall -Wextra -g -DDEBUG -DGRAPH
 
 l = src/include/lang.h
 t = src/include/tokenizator.h

@@ -6,38 +6,38 @@
 
 1 итерация:
 code        ::= {variable}+0
-variable    ::= name [var_op E] "eu"
+variable    ::= name [var_op ASSIGN] "eu"
 var_op      ::= "="
-E           - стандартный парсер выражений из дифф
+ASSIGN           - стандартный парсер выражений из дифф
 name        ::= [а-я, А-Я]
 
 2 итерация:
 code        ::= body+0
 body        ::= STR+
 STR         ::= if | variable
-if          ::= "if" '('E')' ['{']variable['}']
-variable    ::= name [var_op E] "eu"
+if          ::= "if" '('ASSIGN')' ['{']variable['}']
+variable    ::= name [var_op ASSIGN] "eu"
 var_op      ::= "="
-E           - стандартный парсер выражений из дифф
+ASSIGN           - стандартный парсер выражений из дифф
 name        ::= [а-я, А-Я]
 
 3 итерация:
 code        ::= body+0
 body        ::= STR+
 STR         ::= cond | variable
-cond        ::= '{']variable['}' '('E')' {"if" | "while"}
-variable    ::= "eu, " name [E "="]
-E           - стандартный парсер выражений из дифф + лог. операции
+cond        ::= '{']variable['}' '('ASSIGN')' {"if" | "while"}
+variable    ::= "eu, " name [ASSIGN "="]
+ASSIGN           - стандартный парсер выражений из дифф + лог. операции
 name        ::= [а-я, А-Я]
 
 4 итерация:
 code        ::= {func}+$
 func        ::= name {variable | {args body}}
 body        ::= '{'STR+'}'
-STR         ::= cond | func_call | E
-cond        ::= body '('E')' {"if" | "while"}
-variable    ::= E "="
-E           - стандартный парсер выражений из дифф + лог. операции + вызов функций
+STR         ::= cond | func_call | ASSIGN
+cond        ::= body '('ASSIGN')' {"if" | "while"}
+variable    ::= ASSIGN "="
+ASSIGN           - стандартный парсер выражений из дифф + лог. операции + вызов функций
 func_call   ::= "eu, " name {args | variable}
 args        ::= '('name [, args]')'
 name        ::= [а-я, А-Я]
@@ -46,52 +46,52 @@ name        ::= [а-я, А-Я]
 code        ::= {func}+$
 func        ::= name {assignment | {args body}}
 body        ::= '{'STR+'}'
-STR         ::= cond | func_call | E | ret
-cond        ::= body '('E')' {"if" | "while"}
-assignment    ::= E "bolad"
-E           - стандартный парсер выражений из дифф + лог. операции + вызов функций
+STR         ::= cond | func_call | ASSIGN | ret
+cond        ::= body '('ASSIGN')' {"if" | "while"}
+assignment    ::= ASSIGN "bolad"
+ASSIGN           - стандартный парсер выражений из дифф + лог. операции + вызов функций
 func_call   ::= "eu, " name {args | assignment}
 args        ::= '('name [, args]')'
 name        ::= [а-я, А-Я]
-ret         ::= "sygeide" E
+ret         ::= "sygeide" ASSIGN
 
 4,75 итерация:
 code        ::= {func}+$
 func        ::= name {assignment | {args body}}
 args        ::= '('name [, args]')'
 body        ::= '{'STR+'}'
-STR         ::= {cond | ret | E} |{"eu," variable}
-cond        ::= body '('E')' {"if" | "while"}
-assignment  ::= E "bolad"
-E           - стандартный парсер выражений из дифф + лог. операции + вызов функций
+STR         ::= {cond | ret | ASSIGN} |{"eu," variable}
+cond        ::= body '('ASSIGN')' {"if" | "while"}
+assignment  ::= ASSIGN "bolad"
+ASSIGN           - стандартный парсер выражений из дифф + лог. операции + вызов функций
 func_call   ::= "eu, " name call_args
-call_args   ::= '('{ | E [, E]*')'
+call_args   ::= '('{ | ASSIGN [, ASSIGN]*')'
 name        ::= [а-я, А-Я]
-ret         ::= "sygeide" E
+ret         ::= "sygeide" ASSIGN
 
 5 итерация:
 code        ::= {func}+$
 func        ::= name {assignment | {args body}}
 args        ::= '('name [, args]')'
 body        ::= '{'STR+'}'
-STR         ::= {cond | ret | E} |{"eu," {variable | scan}}
+STR         ::= {cond | ret | ASSIGN} |{"eu," {variable | scan}}
 scan        ::= {"scan" '('name')'}
-cond        ::= body '('E')' {"if" | "while"}
-assignment  ::= E "bolad"
-E           - стандартный парсер выражений из дифф + лог. операции + вызов функций
+cond        ::= body '('ASSIGN')' {"if" | "while"}
+assignment  ::= ASSIGN "bolad"
+ASSIGN           - стандартный парсер выражений из дифф + лог. операции + вызов функций
 func_call   ::= "eu, " name call_args
-call_args   ::= '('{ | E [, E]*')'
+call_args   ::= '('{ | ASSIGN [, ASSIGN]*')'
 name        ::= [а-я, А-Я]
-ret         ::= "sygeide" E
+ret         ::= "sygeide" ASSIGN
 
 */
 
 _INIT_LOG();
 
-node_t *pars_STR(token_t *tkns, int *pos);
-node_t *pars_body(token_t *tkns, int *pos);
-node_t *pars_func(token_t *tkns, int *pos);
-node_t *pars_cond(token_t *tkns, int *pos);
+node_t *pars_STR(token_t *tkns, int *pos, int *return_flag);
+node_t *pars_body(token_t *tkns, int *pos, int *return_flag);
+node_t *pars_func(token_t *tkns, int *pos, int *main_flag);
+node_t *pars_cond(token_t *tkns, int *pos, int *return_flag);
 node_t *pars_func_call(token_t *tkns, int *pos);
 node_t *pars_call_args(token_t *tkns, int *pos);
 node_t *pars_args(token_t *tkns, int *pos);
@@ -113,11 +113,12 @@ node_t *create_syntax_tree(token_t *tkns)
     LOG("> creating syntax tree:\n");
 
     int pos = 0;
-    node_t *root = create_node(PROGRAMM, CONN, 0);
+    node_t *root = create_node((unsigned char)0, LINKER, 0);
     node_t *node = NULL;
+    static int main_flag = 0;
     
     do {
-        node = pars_func(tkns, &pos);
+        node = pars_func(tkns, &pos, &main_flag);
         _ADD_B(root, node);
     } while (node && tkns[pos].data_type != $);
 
@@ -128,11 +129,19 @@ node_t *create_syntax_tree(token_t *tkns)
         root = NULL;
     }
 
+    if (main_flag != 1)
+    {
+        LOG("[error]>>>main wasn't found or has multiple definitions\n");
+        printf("[error]>>>main wasn't found or has multiple definitions\n");
+        kill_tree(root, DONT_KILL_STRS);
+        root = NULL;
+    }
+    
     _CLOSE_LOG();
     return root;
 }
 
-node_t *pars_func(token_t *tkns, int *pos)
+node_t *pars_func(token_t *tkns, int *pos, int *main_flag)
 {
     LOG("> creating function\n");
 
@@ -155,9 +164,23 @@ node_t *pars_func(token_t *tkns, int *pos)
     }
 
     func->data_type = FUNC;
-    node_t *body = pars_body(tkns, pos);
-    _ADD_B(func, args);
+    int return_flag = 0;
+
+    node_t *body = pars_body(tkns, pos, &return_flag);
+
+
+    _CHECK_FOR_MAIN(func->data.string);
+
     _ADD_B(func, body);
+    _ADD_B(func, args);
+
+    if (!return_flag)
+    {
+        LOG("[error]>>> language error, return wasn't found\n");
+        printf("[error]>>> language error, return wasn't found\n");
+        kill_tree(func, DONT_KILL_STRS);
+        func = NULL;
+    }
 
     LOG("> function created\n");
     return func;
@@ -179,17 +202,21 @@ node_t *pars_ret(token_t *tkns, int *pos)
     return create_node(RET, OP, 1, expr);
 }
 
-node_t *pars_STR(token_t *tkns, int *pos)
+node_t *pars_STR(token_t *tkns, int *pos, int *return_flag)
 {
     node_t *node = pars_ret(tkns, pos);
     if (node)
+    {
+        LOG(" >return in function was founded");
+        *return_flag = 1;
         return node;
+    }
     
     node = pars_E(tkns, pos);
     if (node)
         return node;
     
-    node = pars_cond(tkns, pos);
+    node = pars_cond(tkns, pos, return_flag);
     if (node)
         return node;
 
@@ -228,7 +255,6 @@ node_t *pars_scan(token_t *tkns, int *pos)
     {
         LOG("[error]>>> syntax error: opening bracket wasn't found <(%p)>\n", tkns);
         printf("[error]>>> syntax error: opening bracket wasn't found\n");
-        //kill_tree(body, DONT_KILL_STRS);
         return NULL;
     }
     TOK_SHIFT();
@@ -252,7 +278,7 @@ node_t *pars_scan(token_t *tkns, int *pos)
     return create_node(SCAN, OP, 1, arg_name);
 }
 
-node_t *pars_body(token_t *tkns, int *pos)
+node_t *pars_body(token_t *tkns, int *pos, int *return_flag)
 {
     if (tkns[*pos].data_type != OP || tkns[*pos].data.command != OP_F_BR)
     {
@@ -263,10 +289,10 @@ node_t *pars_body(token_t *tkns, int *pos)
     TOK_SHIFT();
 
     node_t *node = NULL;
-    node_t *body = create_node(BODY, CONN, 0);
+    node_t *body = create_node((unsigned char)0, LINKER, 0);
     do
     {
-        node = pars_STR(tkns, pos);
+        node = pars_STR(tkns, pos, return_flag);
         if (!node)
         {
             kill_tree(body, DONT_KILL_STRS);
@@ -297,10 +323,10 @@ node_t *pars_body(token_t *tkns, int *pos)
     return body;
 }
 
-node_t *pars_cond(token_t *tkns, int *pos)
+node_t *pars_cond(token_t *tkns, int *pos, int *return_flag)
 {
     LOG("> parsing condition\n");
-    node_t *body = pars_body(tkns, pos);
+    node_t *body = pars_body(tkns, pos, return_flag);
     if (!body)
         return NULL;
 
@@ -340,7 +366,9 @@ node_t *pars_cond(token_t *tkns, int *pos)
         kill_tree(expr, DONT_KILL_STRS);
         return NULL;
     }
-    node_t *node = create_node(tkns[*pos].data.command, OP, 2, body, expr);
+    node_t *node = create_node(tkns[*pos].data.command, OP, 0);
+    _ADD_B(node, expr);
+    _ADD_B(node, body);
     TOK_SHIFT(); 
     
     return node;
@@ -361,13 +389,15 @@ node_t *pars_variable(token_t *tkns, int *pos)
         return name;
     }
 
-    node_t *node = pars_assignment(tkns, pos);
-    if (!node)
+    node_t *expr = pars_assignment(tkns, pos);
+    if (!expr)
     {
         kill_tree(name, DONT_KILL_STRS);
         return NULL;
     }
+    node_t *node = create_node(ASSIGN, OP, 0);
     _ADD_B(node, name);
+    _ADD_B(node, expr);
 
     return node;
 }
@@ -379,11 +409,11 @@ node_t *pars_assignment(token_t *tkns, int *pos)
     if (!expr)
         return NULL;
     
-    if (tkns[*pos].data_type == OP && tkns[*pos].data.command == E)
+    if (tkns[*pos].data_type == OP && tkns[*pos].data.command == ASSIGN)
     {
         LOG("> variable with assignment found\n");
         TOK_SHIFT();
-        return create_node((unsigned char)E, OP, 1, expr);
+        return expr;
     }
 
     LOG("[error]>>> syntax error, assign operator wasn't found <(%p)>\n", tkns);
@@ -426,7 +456,7 @@ node_t *pars_call_args(token_t *tkns, int *pos)
     if (!expr)
         return NULL;
 
-    node_t *args = create_node(ARGS, CONN, 1, expr);
+    node_t *args = create_node((unsigned char)0, LINKER, 1, expr);
     while (tkns[*pos].data_type == OP && tkns[*pos].data.command == ZAP)
     {
         TOK_SHIFT();
@@ -461,7 +491,7 @@ node_t *pars_args(token_t *tkns, int *pos)
     TOK_SHIFT();
     LOG("> opening bracket was found on %p\n", tkns);
 
-    node_t *node = create_node((unsigned char)ARGS, CONN, 0);
+    node_t *node = create_node((unsigned char)(unsigned char)0, LINKER, 0);
     do
     {
         node_t *arg = pars_name(tkns, pos);
@@ -526,7 +556,7 @@ node_t *pars_E(token_t *tkns, int *pos)
         _ADD_B(node, pars_sum(tkns, pos));
     }
 
-    node_t *expr = create_node(EXPR, CONN, 1, node);
+    node_t *expr = create_node((unsigned char)0, LINKER, 1, node);
 
     return expr;
 }

@@ -7,25 +7,25 @@ int assign_variable(FILE *asm_file, memory_work *memory, Stack <variable_t> *var
     assert(asm_file);
     assert(memory);
     assert(node);
-    assert(node->data.command == E);
+    assert(node->data.command == ASSIGN);
     assert(vars);
 
     _CHECK_NODE_NUM(2);
-    if (node->branches[R]->data_type != VAR)
+    if (node->branches[L]->data_type != VAR)
     {
         printf(">>> language parser error occured: the right branch of assign command is NOT an variable%40s\n", "[error]");
         return ASS_L_NODE_ERR;
     }
 
-    int error = expr_in_asm(asm_file, memory, vars, node->branches[L]->branches[0]);
+    int error = expr_in_asm(asm_file, memory, vars, node->branches[R]->branches[0]);
     if (error)
         return error;
     
     
-    int var_not_exists = pop_var_in_asm(asm_file, memory->global_vars, vars, node->branches[R]->data.string);
+    int var_not_exists = pop_var_in_asm(asm_file, memory->global_vars, vars, node->branches[L]->data.string);
     if (var_not_exists)
     {
-        create_variable(asm_file, vars, node->branches[R]);
+        create_variable(asm_file, vars, node->branches[L]);
         _POP_REL(vars->getDataOnPos(vars->getStackSize() - 1).rel_address);
     }
 

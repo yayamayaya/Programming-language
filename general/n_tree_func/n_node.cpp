@@ -185,7 +185,7 @@ void kill_tree(node_t *node, int mode)
             kill_tree(node->branches[i], mode);
 
     if (mode)
-        if (node->data_type == VAR || node->data_type == FUNC)
+        if (node->data_type == VAR || node->data_type == FUNC || node->data_type == MAIN)
             free((void *)node->data.string);
     
     free(node->branches);
