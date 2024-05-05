@@ -2,9 +2,9 @@
 #define ARITHM
 
 #include <stdio.h>
-#include "../../../common/logging/log.h"
-#include "n_node.h"
-#include "commands.h"
+#include "../../../../common/logging/log.h"
+#include "../../../general/n_tree_func/n_node.h"
+#include "../../../general/commands/commands.h"
 #include <math.h>
 #include "global_defines.h"
 

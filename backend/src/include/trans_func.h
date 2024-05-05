@@ -16,8 +16,8 @@ enum FUNC_COMP_ERRS
     MAIN_NOT_FOUND,
 };
 
-func_t *find_func(const char *func_name);
-int compile_func(node_t *root);
-int call_func(Stack <variable_t> *vars, node_t *node);
+int compile_func(FILE *asm_file, memory_work *memory, node_t *root);
+int call_func(FILE *asm_file, memory_work *memory, Stack <variable_t> *vars, node_t *node);
+func_t *find_func(Stack <func_t> *funcs, const char *func_name);
 
 #endif

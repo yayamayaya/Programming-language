@@ -10,6 +10,6 @@ enum COMP_ERRS
     MEM_NUM_ARR_ALC_ERR,
 };
 
-int compiler(node_t *root);
+int translator(node_t *root);
 
 #endif

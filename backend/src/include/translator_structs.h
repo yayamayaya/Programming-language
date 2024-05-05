@@ -2,7 +2,7 @@
 #define STRUCTS
 
 #include <stdio.h>
-#include "../../../stack/src/stack.h"
+#include "../../../../stack/src/stack.h"
 
 typedef struct
 {
@@ -20,13 +20,21 @@ typedef struct
 {
     const char *func;
     int arg_num;
-    int rbp;
+    int mem_size;
 } func_t;
 
-extern int free_mem_ptr;
+typedef struct
+{
+    int free_mem_ptr;
+    Stack <variable_t> *global_vars;
+    Stack <func_t> *funcs;
+} memory_work;
+
+
+/*extern int free_mem_ptr;
 extern FILE *asm_file;
 extern Stack <variable_t> *global_vars;
 extern Stack <func_t> *funcs;
-extern int return_flag;
+extern int return_flag;*/
 
 #endif
