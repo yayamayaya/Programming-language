@@ -83,7 +83,6 @@ void write_tree(FILE *file, node_t *node)
         write_tree(file, NULL);
         write_tree(file, NULL);
     }
-    
 
     fprintf(file, "}");
 
