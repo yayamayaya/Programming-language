@@ -21,12 +21,12 @@ int assign_variable(FILE *asm_file, memory_work *memory, Stack <variable_t> *var
     if (error)
         return error;
     
+    create_variable(asm_file, vars, node->branches[R]);
+
     error = pop_var_in_asm(asm_file, memory->global_vars, vars, node->branches[R]->data.string);
     if (error)
         return error;
     
-    create_variable(asm_file, vars, node->branches[R]);
-
     return 0;
 }
 

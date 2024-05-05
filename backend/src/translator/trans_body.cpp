@@ -202,14 +202,3 @@ void var_dump(Stack <variable_t> *vars)
     
     LOG("--------------------------DUMP ENDED----------------------------\n");
 }
-
-/*void free_stk_frame(Stack <variable_t> *vars)
-{
-    assert(vars);
-
-    LOG("> freeing all memory in stk_frame:\n");
-    for (int i = 0; i < vars->getStackSize(); i++)
-        _FREE_LCL_MEM(i);
-
-    return;
-}*/

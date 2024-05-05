@@ -45,13 +45,6 @@ int compile_func(FILE *asm_file, memory_work *memory, node_t *root)
         }
     LOG("> memory size allocations were completed\n");
 
-    if (find_func(memory->funcs, "Elbasy") == NULL)
-    {
-        LOG(">>> main function not found, comp. error%40s\n", "[error]");
-        _CLOSE_LOG();
-        return MAIN_NOT_FOUND;
-    }
-
     int error = 0;
     LOG("> creating global variables:\n");
     for (int br = 0; br < root->branch_number; br++)
@@ -65,7 +58,7 @@ int compile_func(FILE *asm_file, memory_work *memory, node_t *root)
             }
         }
     
-    _CALL_MAIN();
+    _CALL_MAIN(memory->global_vars->getStackSize());
 
     LOG("> compiling functions\n");
     for (int br = 0; br < root->branch_number; br++)
@@ -203,8 +196,10 @@ int call_func(FILE *asm_file, memory_work *memory, Stack <variable_t> *vars, nod
 
     LOG("> allocating stack frame:\n");
     _PUSH_REG("cx");
+    _PUSH_REG("cx");
     _PUSH_NUM(memory->free_mem_ptr);
-    _POP_REG("cx");
+    _PR("add\n");
+    _POP_REG("ax");
 
     for (int i = 0; i < function->arg_num; i++)
     {
@@ -215,8 +210,11 @@ int call_func(FILE *asm_file, memory_work *memory, Stack <variable_t> *vars, nod
             return VAR_DEF_NOT_F_ERR;
         }
         
-        _POP_REL(i);
+        _POP_REL_AX(i);
     }
+
+    _MOV("cx", "ax");
+
     _CALL_FUNC(function->func);
     memory->free_mem_ptr += function->mem_size;
     return 0;

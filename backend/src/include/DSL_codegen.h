@@ -8,6 +8,7 @@
 #define _PUSH_REL(addr)         _PR("push [cx+%d]\n", addr)
 #define _PUSH_MEM(addr)         _PR("push [%d]\n", addr)
 #define _POP_REL(addr)          _PR("pop [cx+%d]\n\n", addr)
+#define _POP_REL_AX(addr)       _PR("pop [ax+%d]\n\n", addr)
 #define _POP_REG(reg)           _PR("pop %s\n", reg)
 #define _POP_MEM(addr)              _PR("pop [%d]\n\n", addr)
 #define _LABEL(type, name)      _PR("\n%c%p:\n", type, name)
@@ -20,10 +21,11 @@
 #define _FREE_LCL_MEM(addr)     _PR("mov, [cx+%d], 0\n", addr)
 #define _IN()                   _PR("in\n")
 
-#define _CALL_MAIN()            _PR("push cx\n");                                 \
+#define _CALL_MAIN(main_rbp)    _PR("mov cx,%d\n", main_rbp);                             \
+                                _PR("push cx\n");                                 \
                                 _PR("call Elbasy\n");                             \
                                 _PR("out\n");                                     \
-                                _PR("halt\n\n\n");                                
+                                _PR("halt\n\n\n")                            
 
 
 #endif
