@@ -2,8 +2,8 @@
 
 _INIT_LOG();
 
-node_t *read_node(const char *buff, int *error);
-data_t read_data(const char *buff, int *pos, int data_type, int *error);
+int read_node(node_t **node, const char *buff);
+int read_data(data_t *data, const char *buff, int *pos, int data_type);
 
 int read_tree(node_t **root_ptr, const char *tree_file_name)
 {
@@ -22,8 +22,7 @@ int read_tree(node_t **root_ptr, const char *tree_file_name)
         return error;
     }
 
-    node_t *root = read_node(buff, &error);
-    *root_ptr = root;
+    error = read_node(root_ptr, buff);
 
     _CLOSE_LOG();
     free(buff);
@@ -31,7 +30,7 @@ int read_tree(node_t **root_ptr, const char *tree_file_name)
     return error;
 }
 
-node_t *read_node(const char *buff, int *error)
+int read_node(node_t **node, const char *buff)
 {
     assert(buff);
 
@@ -39,11 +38,12 @@ node_t *read_node(const char *buff, int *error)
     int n = 0;
     int data_type = 0;
 
+    LOG("> reading node:\n");
+
     if (buff[pos] != '{')
     {
         LOG("[error]>>> opening bracket wasn't found\n");
-        *error = OP_BR_NOT_FOUND_ERR;
-        return NULL;
+        return OP_BR_NOT_FOUND_ERR;
     }
     pos++;
     LOG("> pos shifted, current pos is %d, the rest is: %s\n", pos, buff + pos);
@@ -59,12 +59,12 @@ node_t *read_node(const char *buff, int *error)
         if (buff[pos] != '}')
         {
             LOG("[error]>>> closing bracket wasn't found in the nil node\n");
-            *error = CL_BR_NOT_FOUND_ERR;
+            return CL_BR_NOT_FOUND_ERR;
         }
         pos++;
         LOG("> pos shifted, current pos is %d, the rest is: %s\n", pos, buff + pos);
         
-        return NULL;
+        return NO_ERR;
     }
 
     int sc = sscanf(buff + pos, "#%d#%n", &data_type, &n);
@@ -72,51 +72,73 @@ node_t *read_node(const char *buff, int *error)
     if (!n)
     {
         LOG("[error]>>> tree file structure error, returning NULL\n");
-        *error = TREE_STRUCTURE_ERR;
-        return NULL;
+        return TREE_STRUCTURE_ERR;
     }
     pos += n;
     n = 0;
     LOG("> pos shifted, current pos is %d, the rest is: %s\n", pos, buff + pos);
 
-    data_t data = read_data(buff, &pos, data_type, error);
+    data_t data = {};
+    int error = read_data(&data, buff, &pos, data_type);
+    if (error)
+    {
+        if (data_type == VAR || data_type == FUNC)
+            free((void *)data.string);
+        
+        return error;
+    }
 
-    node_t *node = create_node(data, data_type, 0);
-    _ADD_B(node, read_node(buff, error));
-    _ADD_B(node, read_node(buff, error));
+    node_t *l = NULL;
+    node_t *r = NULL;
 
+    error = read_node(&l, buff);
+    if (error)
+        return error;
+    error = read_node(&r, buff);
+    if (error)
+        return error;
+
+    node_t *new_node = create_node(data, data_type, 0);
+    _ADD_B(new_node, l);
+    _ADD_B(new_node, r);
+    
     if (buff[pos] != '}')
     {
         LOG("[error]>>> closing bracket wasn't found in the nil node\n");
-        *error = CL_BR_NOT_FOUND_ERR;
-        kill_tree(node);
-        return NULL;
+        kill_tree(new_node);
+        return CL_BR_NOT_FOUND_ERR;
     }
     pos++;
     LOG("> pos shifted, current pos is %d, the rest is: %s\n", pos, buff + pos);
 
-    return node;
+    *node = new_node;
+
+    return NO_ERR;
 }
 
-data_t read_data(const char *buff, int *pos, int data_type, int *error)
+int read_data(data_t *data_ptr, const char *buff, int *pos, int data_type)
 {
     data_t data = {};
     int n = 0;
 
+    LOG("> reading data\n");
     switch (data_type)
     {
 
     case NUM:
+        LOG("> scanning number\n");
         sscanf(buff + *pos, "#%lf#%n", &data.number, &n);
         if (!n)
             break;
 
+        LOG("> number %.2lf scanned\n", data.number);
         *pos += n;
         break;
 
     case VAR:
     case FUNC:
     {
+        LOG("> scanning a string\n");
         char *string = (char *)calloc(100, sizeof(char));
         sscanf(buff + *pos, "#%[^#]#%n", string, &n);
         if (!n)
@@ -127,12 +149,15 @@ data_t read_data(const char *buff, int *pos, int data_type, int *error)
         
         data.string = string;
         *pos += n;
+
+        LOG("> string \"%s\" scanned\n", data.string);
         break;
     }
 
     case OP:
     case CONN:
     {
+        LOG("scanning a command\n");
         int cmd = 0;
         sscanf(buff + *pos, "#%d#%n", &cmd, &n);
         if (!n)
@@ -140,23 +165,24 @@ data_t read_data(const char *buff, int *pos, int data_type, int *error)
 
         data.command = (unsigned char)cmd;
         *pos += n;
+        LOG("> command %d scanned\n", data.command);
         break;
     }
 
     default:
         LOG("[error]>>> fatal error, operation type was not recognised\n");
-        *error = OP_TYPE_NOT_REC_ERR;
-        break;
+        return OP_TYPE_NOT_REC_ERR;
 
     }
 
     if (!n)
     {
         LOG("[error]>>> error while reading data, returning NULL\n");
-        *error = DATA_READ_ERR;
-        return data;
+        return DATA_READ_ERR;
     }
     LOG("> pos shifted, current pos is %d, the rest is: %s\n", *pos, buff + *pos);
 
-    return data;
+    *data_ptr = data;
+
+    return NO_ERR;
 }
