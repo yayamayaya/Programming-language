@@ -61,4 +61,4 @@ funcs.o: $(fcpp) $(f)
 	$(CC) $(CFLAGS) -c $< -o bin/$@
 
 rb:
-	valgrind --leak-check=full --show-leak-kinds=all bin/front ../data/code.txt ../data/tree.txt
+	valgrind --leak-check=full  bin/front ../data/code.txt ../data/tree.txt
