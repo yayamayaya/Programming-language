@@ -1,16 +1,19 @@
 #include "../include/body.h"
 
 int make_body_command(FILE* asm_file, memory_work *memory, Stack <variable_t> *vars, node_t *node);
-void free_local_mem(FILE *asm_file, Stack <variable_t> *vars, int var_num);
 void var_dump(Stack <variable_t> *vars);
-//void free_stk_frame(Stack <variable_t> *vars);
-
-//Разбить большую функцию, избавиться от глобальных переменных,  сделать общую структур для глобально используемых переменных
+void free_local_mem(FILE *asm_file, Stack <variable_t> *vars, int var_num);
 
 _INIT_LOG();
 
-/*int first_lcl_var_pos = 0;
-int last_lcl_var_pos = 0;*/
+int start_body_transl(FILE* asm_file, memory_work *memory, Stack <variable_t> *vars, node_t *body_root)
+{
+    _OPEN_N_LOG("logs/body%d.log");
+    int error = translate_body(asm_file, memory, vars, body_root);
+    _CLOSE_LOG();
+
+    return error;
+}
 
 int translate_body(FILE* asm_file, memory_work *memory, Stack <variable_t> *vars, node_t *body_root)
 {
@@ -19,12 +22,9 @@ int translate_body(FILE* asm_file, memory_work *memory, Stack <variable_t> *vars
     assert(body_root);
     assert(vars);
 
-    _OPEN_N_LOG("logs/body%d.log");
-
     if (body_root->data_type != CONN)
     {
         LOG("fatal error occured, body root is not a connection node%40s\n", "[error]");
-        _CLOSE_LOG();
         return BODY_IS_NOT_NODE_ERR;
     }
     int first_lcl_var_pos = 0;
@@ -35,18 +35,13 @@ int translate_body(FILE* asm_file, memory_work *memory, Stack <variable_t> *vars
     {
         int error = make_body_command(asm_file, memory, vars, body_root->branches[i]);
         if (error)
-        {
-            _CLOSE_LOG();
             return error;
-        }
     }
-    LOG("> body was read successfully\n");
     last_lcl_var_pos = vars->getStackSize();
+    LOG("> body was read successfully\n");
 
     var_dump(vars);
     free_local_mem(asm_file, vars, last_lcl_var_pos - first_lcl_var_pos);
-
-    _CLOSE_LOG();
 
     return 0;
 }
@@ -134,6 +129,11 @@ int make_body_command(FILE* asm_file, memory_work *memory, Stack <variable_t> *v
             _IN();
             
             error = pop_var_in_asm(asm_file, memory->global_vars, vars, node->branches[0]->data.string);
+            if (error)
+            {
+                LOG("[error]>>> variable was not defined in this scope\n");
+                printf(">>> compilation error: variable %s was not defined\n", node->branches[0]->data.string);
+            }
 
             break;
         }
@@ -144,11 +144,17 @@ int make_body_command(FILE* asm_file, memory_work *memory, Stack <variable_t> *v
         break;
 
     case VAR:
-        if (find_var(vars, node->data.string))
-            {LOG("variable already exists, continuing forward\n");}
-        else
-            error = create_variable(asm_file, vars, node);
+    {
+        variable_t *existing_var = find_var(vars, node->data.string);
+        if (existing_var)
+            break;
+        existing_var = find_var(memory->global_vars, node->data.string);
+        if (existing_var)
+            break;
+
+        create_variable(asm_file, vars, node);
         break;
+    }
 
     case CONN:
         _CHECK_NODE_NUM(1);
@@ -176,7 +182,7 @@ void free_local_mem(FILE *asm_file, Stack <variable_t> *vars, int var_num)
     assert(vars);
     assert(asm_file);
     
-    LOG("> freeing %d local variables:\n", vars->getStackSize());
+    LOG("> freeing %d local variables:\n", var_num);
     for (int i = 0; i < var_num; i++)
     {
         variable_t var_to_del = {};
