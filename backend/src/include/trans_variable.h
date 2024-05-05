@@ -10,7 +10,7 @@
 #define SIZE_OF_RAM 256
 
 int assign_variable(FILE *asm_file, memory_work *memory, Stack <variable_t> *vars, node_t *node);
-int create_variable(FILE *asm_file, Stack <variable_t> *vars, node_t *node);
+void create_variable(FILE *asm_file, Stack <variable_t> *vars, node_t *node);
 variable_t *find_var(Stack <variable_t> *vars, const char *var_name);
 int push_var_in_asm(FILE *asm_file, Stack <variable_t> *global_vars, Stack <variable_t> *vars, const char *var_name);
 int pop_var_in_asm(FILE *asm_file, Stack <variable_t> *global_vars, Stack <variable_t> *vars, const char *var_name);

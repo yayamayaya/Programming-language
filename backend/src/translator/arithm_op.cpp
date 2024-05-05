@@ -30,8 +30,8 @@ void turn_op_to_num(node_t *node, double number)
 {
     assert(node);
 
-    kill_tree(node->branches[L]);
-    kill_tree(node->branches[R]);
+    kill_tree(node->branches[L], KILL_STRINGS);
+    kill_tree(node->branches[R], KILL_STRINGS);
     free(node->branches);
     node->branches = NULL;
     node->branch_number = 0;

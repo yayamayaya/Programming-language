@@ -175,17 +175,18 @@ void print_node(FILE *out, node_t *node)
     return;
 }
 
-void kill_tree(node_t *node)
+void kill_tree(node_t *node, int mode)
 {
     if (!node)
         return;
 
     for (int i = 0; i < node->branch_number; i++)
         if (node->branches[i])
-            kill_tree(node->branches[i]);
+            kill_tree(node->branches[i], mode);
 
-    if (node->data_type == VAR || node->data_type == FUNC)
-        free((void *)node->data.string);
+    if (mode)
+        if (node->data_type == VAR || node->data_type == FUNC)
+            free((void *)node->data.string);
     
     free(node->branches);
     free(node);

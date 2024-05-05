@@ -43,6 +43,12 @@ enum NODE_ERRORS
     NODE_MEM_ALC_ERR = 11,
 };
 
+enum KILLING_MODES
+{
+    KILL_STRINGS = 1,
+    DONT_KILL_STRS = 0,
+};
+
 node_t *create_node(const int data, const unsigned char data_type, const int branch_number, ...);
 node_t *create_node(double data, const unsigned char data_type, const int branch_number, ...);
 node_t *create_node(const char *data, const unsigned char data_type, const int branch_number, ...);
@@ -50,6 +56,6 @@ node_t *create_node(unsigned char data, const unsigned char data_type, const int
 node_t *create_node(data_t data, const unsigned char data_type, const int branch_number, ...);
 int add_branch(node_t *parent_node, node_t *branch);
 void print_node(FILE *out, node_t *node);
-void kill_tree(node_t *node);
+void kill_tree(node_t *node, int mode);
 
 #endif

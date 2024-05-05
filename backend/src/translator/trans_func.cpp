@@ -1,15 +1,10 @@
 #include "../include/trans_func.h"
 
-/*int stk_frame_pos = 0;
-int return_flag = 0;*/
-
 void mem_to_call(int *mem_size, node_t *node);
 int create_global_vars(FILE *asm_file, memory_work *memory, node_t *node);
 int translate_function(FILE *asm_file, memory_work *memory, node_t *node);
 
 _INIT_LOG();
-
-//TO DO посокращать длинные строки через функции, убрать костыль с Elbasy, венести кодогенерацию в дефайны
 
 int compile_func(FILE *asm_file, memory_work *memory, node_t *root)
 {
@@ -110,7 +105,7 @@ int create_global_vars(FILE *asm_file, memory_work *memory, node_t *node)
         if (find_var(memory->global_vars, node->data.string))
             {LOG("> variable already exists, continuing forward\n");}
         else
-            error = create_variable(asm_file, memory->global_vars, node);
+            create_variable(asm_file, memory->global_vars, node);
         break;
     
     default:
@@ -141,33 +136,16 @@ int translate_function(FILE *asm_file, memory_work *memory, node_t *node)
     Stack <variable_t> vars = {};
     vars.stackCtor(10, "logs/vars.log");
 
-    //int rel_address = 0;
     int error = 0;
     LOG("> allocating memory for the arguments:\n");
     for (int arg = 0; arg < node->branches[L]->branch_number; arg++)
-    {
-        error = create_variable(asm_file, &vars, node->branches[L]->branches[arg]);
-        if (error)
-        {
-            vars.stackDtor();
-            return error;
-        }
-    }
+        create_variable(asm_file, &vars, node->branches[L]->branches[arg]);
 
-    //int gl_var_mem_ptr = free_mem_ptr;
-    //free_mem_ptr = 0;
     LOG("> arguments were allocated, compiling a body:\n");
-    error = translate_body(asm_file, memory, &vars, node->branches[R]);
+    error = start_body_transl(asm_file, memory, &vars, node->branches[R]);
     LOG("> body compilation finished\n");
-    //free_mem_ptr = gl_var_mem_ptr;
 
-    /*if (!return_flag)
-    {
-        LOG(">>> return in function wasn't found, compilation error%40s\n", "[error]");
-        error = RET_NOT_FOUND_ERR;
-    }*/
     vars.stackDtor();
-    //return_flag = 0;
 
     return error;
 }
@@ -207,7 +185,7 @@ int call_func(FILE *asm_file, memory_work *memory, Stack <variable_t> *vars, nod
         if (error)
         {
             LOG("> variable was not defined in this scope%40s\n", "[error]");
-            return VAR_DEF_NOT_F_ERR;
+            return VAR_DEF_NOT_F;
         }
         
         _POP_REL_AX(i);

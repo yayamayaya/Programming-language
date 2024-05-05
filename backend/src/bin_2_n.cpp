@@ -12,7 +12,7 @@ node_t *convert_tree(node_t *node)
             _ADD_B(node, child_node->branches[i]);
             child_node->branches[i] = NULL;
         }
-        kill_tree(child_node);
+        kill_tree(child_node, KILL_STRINGS);
     }
 
     for (int i = 0; i < node->branch_number; i++)

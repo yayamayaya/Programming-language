@@ -1,5 +1,5 @@
 CC 		= g++
-CFLAGS 	= -Wall -Wextra -g -DDEBUG -DGRAPH
+CFLAGS 	= -Wall -Wextra -g -DDEBUG -DGRAPH -DSIMPL
 
 l = src/include/lang.h
 t = src/include/tokenizator.h
@@ -39,7 +39,7 @@ n_node.o: $(ncpp) $(n)
 graph.o: $(gcpp) $(g)
 	$(CC) $(CFLAGS) -c $< -o bin/$@
 
-rf:
+rt:
 	valgrind --show-leak-kinds=all --leak-check=full bin/front ../data/tree.txt ../programms/test.txt
 
 rfact:

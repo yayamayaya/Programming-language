@@ -12,6 +12,7 @@ int main(int argc, char const *argv[])
         printf("[error]>>> not enough arguments in programm call\n");
         return ERR;
     }
+    _CLEAR_LOGS();
     _OPEN_LOG("logs/main.log");
 
     LOG("> reading tree\n");
@@ -20,7 +21,7 @@ int main(int argc, char const *argv[])
     if (!root || error)
     {
         LOG("[error]>>> error in tree reading\n");
-        kill_tree(root);
+        kill_tree(root, KILL_STRINGS);
         _CLOSE_LOG();
         return error;
     }
@@ -33,7 +34,7 @@ int main(int argc, char const *argv[])
     if (error)
     {
         LOG("[error]>>> error in graphcode creation\n");
-        kill_tree(root);
+        kill_tree(root, KILL_STRINGS);
         _CLOSE_LOG();
         return error;
     }
@@ -45,7 +46,7 @@ int main(int argc, char const *argv[])
     LOG("> starting translation:\n");
     error = translator(root);
 
-    kill_tree(root);
+    kill_tree(root, KILL_STRINGS);
     _CLOSE_LOG();
     return error;
 }

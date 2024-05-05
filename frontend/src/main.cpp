@@ -10,6 +10,7 @@ int main(int argc, char const *argv[])
         printf("[error]>>> not enough arguments in programm call\n");
         return ERR;
     }
+    _CLEAR_LOGS();
     _OPEN_LOG("logs/main.log");
     clear_all_png();
 
@@ -36,7 +37,8 @@ int main(int argc, char const *argv[])
 
     error = save_tree(argv[argc - 2], root);
     
-    kill_tree(root);
+    kill_tree(root, DONT_KILL_STRS);
+    free_tok_strings(token_arr);
     free(token_arr);
     LOG(">> programm ended\n");
     _CLOSE_LOG();

@@ -1,7 +1,5 @@
 #include "../include/translator.h"
 
-//TO DO избавиться от 4 переменных ниже
-
 _INIT_LOG();
 
 int translator(node_t *root)

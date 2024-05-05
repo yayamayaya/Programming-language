@@ -10,8 +10,6 @@ int expr_in_asm(FILE *asm_file, memory_work *memory, Stack <variable_t> *vars, n
     assert(node);
     assert(vars);
     assert(memory);
-
-    //_OPEN_N_LOG("logs/expr%d.log");
     
     LOG("node %p was given for calculation\n", node);
     int error = 0;

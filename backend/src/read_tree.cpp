@@ -105,7 +105,7 @@ int read_node(node_t **node, const char *buff)
     if (buff[pos] != '}')
     {
         LOG("[error]>>> closing bracket wasn't found in the nil node\n");
-        kill_tree(new_node);
+        kill_tree(new_node, KILL_STRINGS);
         return CL_BR_NOT_FOUND_ERR;
     }
     pos++;

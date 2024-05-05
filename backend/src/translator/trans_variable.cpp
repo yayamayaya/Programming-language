@@ -21,27 +21,28 @@ int assign_variable(FILE *asm_file, memory_work *memory, Stack <variable_t> *var
     if (error)
         return error;
     
-    create_variable(asm_file, vars, node->branches[R]);
-
-    error = pop_var_in_asm(asm_file, memory->global_vars, vars, node->branches[R]->data.string);
-    if (error)
-        return error;
     
+    int var_not_exists = pop_var_in_asm(asm_file, memory->global_vars, vars, node->branches[R]->data.string);
+    if (var_not_exists)
+    {
+        create_variable(asm_file, vars, node->branches[R]);
+        _POP_REL(vars->getDataOnPos(vars->getStackSize() - 1).rel_address);
+    }
+
     return 0;
 }
 
-int create_variable(FILE *asm_file, Stack <variable_t> *vars, node_t *node)
+void create_variable(FILE *asm_file, Stack <variable_t> *vars, node_t *node)
 {
     assert(asm_file);
     assert(node);
     assert(node->data_type == VAR);
     assert(vars);
 
-    printf("> creating a variable %s\n", node->data.string);
     variable_t new_var = {node->data.string, vars->getStackSize()};
     vars->stackPush(new_var);
 
-    return 0;
+    return;
 }
 
 variable_t *find_var(Stack <variable_t> *vars, const char *var_name)
@@ -83,7 +84,7 @@ int push_var_in_asm(FILE *asm_file, Stack <variable_t> *global_vars, Stack <vari
     LOG("[error]>>> variable was not defined in this scope\n");
     printf(">>> compilation error: variable %s was not defined\n", var_name);
     _CLOSE_LOG();
-    return VAR_DEF_NOT_F_ERR;
+    return VAR_DEF_NOT_F;
 }
 
 int pop_var_in_asm(FILE *asm_file, Stack <variable_t> *global_vars, Stack <variable_t> *vars, const char *var_name)
@@ -110,8 +111,7 @@ int pop_var_in_asm(FILE *asm_file, Stack <variable_t> *global_vars, Stack <varia
         return 0;
     }
     
-    LOG("[error]>>> variable was not defined in this scope\n");
-    printf(">>> compilation error: variable %s was not defined\n", var_name);
+    LOG("> variable was not found\n");
     _CLOSE_LOG();
-    return VAR_DEF_NOT_F_ERR;
+    return VAR_DEF_NOT_F;
 }

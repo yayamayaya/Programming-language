@@ -124,7 +124,7 @@ node_t *create_syntax_tree(token_t *tkns)
     if (tkns[pos].data_type != $)
     {
         LOG("[error]>>> $ not found <(%p)>\n", tkns);
-        kill_tree(root);
+        kill_tree(root, DONT_KILL_STRS);
         root = NULL;
     }
 
@@ -228,7 +228,7 @@ node_t *pars_scan(token_t *tkns, int *pos)
     {
         LOG("[error]>>> syntax error: opening bracket wasn't found <(%p)>\n", tkns);
         printf("[error]>>> syntax error: opening bracket wasn't found\n");
-        //kill_tree(body);
+        //kill_tree(body, DONT_KILL_STRS);
         return NULL;
     }
     TOK_SHIFT();
@@ -243,7 +243,7 @@ node_t *pars_scan(token_t *tkns, int *pos)
     {
         LOG("[error]>>> syntax error: closing bracket wasn't found <(%p)>\n", tkns);
         printf("[error]>>> syntax error: closing bracket wasn't found\n");
-        kill_tree(arg_name);
+        kill_tree(arg_name, DONT_KILL_STRS);
         return NULL;
     }
     TOK_SHIFT();
@@ -269,7 +269,7 @@ node_t *pars_body(token_t *tkns, int *pos)
         node = pars_STR(tkns, pos);
         if (!node)
         {
-            kill_tree(body);
+            kill_tree(body, DONT_KILL_STRS);
             return NULL;
         }
         
@@ -279,7 +279,7 @@ node_t *pars_body(token_t *tkns, int *pos)
     if (!body->branch_number)
     {
         LOG("> body don't have any strings, returning NULL\n");
-        kill_tree(body);
+        kill_tree(body, DONT_KILL_STRS);
         return NULL;
     }
     
@@ -287,7 +287,7 @@ node_t *pars_body(token_t *tkns, int *pos)
     {
         LOG("[error]>>> closing figure bracket not found\n");
         printf("[error]>>> closing figure bracket not found\n");
-        kill_tree(body);
+        kill_tree(body, DONT_KILL_STRS);
         return NULL;
     }
     LOG("> closing figure bracket found\n");
@@ -310,7 +310,7 @@ node_t *pars_cond(token_t *tkns, int *pos)
     {
         LOG("[error]>>> syntax error: opening bracket wasn't found <(%p)>\n", tkns);
         printf("[error]>>> syntax error: opening bracket wasn't found\n");
-        kill_tree(body);
+        kill_tree(body, DONT_KILL_STRS);
         return NULL;
     }
     TOK_SHIFT();
@@ -318,7 +318,7 @@ node_t *pars_cond(token_t *tkns, int *pos)
     node_t *expr = pars_E(tkns, pos);
     if (!expr)
     {
-        kill_tree(body);
+        kill_tree(body, DONT_KILL_STRS);
         return NULL;
     }
     
@@ -326,8 +326,8 @@ node_t *pars_cond(token_t *tkns, int *pos)
     {
         LOG("[error]>>> syntax error: closing bracket wasn't found <(%p)>\n", tkns);
         printf("[error]>>> syntax error: closing bracket wasn't found\n");
-        kill_tree(body);
-        kill_tree(expr);
+        kill_tree(body, DONT_KILL_STRS);
+        kill_tree(expr, DONT_KILL_STRS);
         return NULL;
     }
     TOK_SHIFT();
@@ -336,8 +336,8 @@ node_t *pars_cond(token_t *tkns, int *pos)
     {
         LOG("[error]>>> syntax error: if/while operator wasn't found... <(%p)>\n", tkns);
         printf("[error]>>> syntax error: if/while operator wasn't found\n");
-        kill_tree(body);
-        kill_tree(expr);
+        kill_tree(body, DONT_KILL_STRS);
+        kill_tree(expr, DONT_KILL_STRS);
         return NULL;
     }
     node_t *node = create_node(tkns[*pos].data.command, OP, 2, body, expr);
@@ -364,7 +364,7 @@ node_t *pars_variable(token_t *tkns, int *pos)
     node_t *node = pars_assignment(tkns, pos);
     if (!node)
     {
-        kill_tree(name);
+        kill_tree(name, DONT_KILL_STRS);
         return NULL;
     }
     _ADD_B(node, name);
@@ -388,7 +388,7 @@ node_t *pars_assignment(token_t *tkns, int *pos)
 
     LOG("[error]>>> syntax error, assign operator wasn't found <(%p)>\n", tkns);
     printf("[error]>>> syntax error, assign operator wasn't found\n");
-    kill_tree(expr);
+    kill_tree(expr, DONT_KILL_STRS);
     return NULL;
 }
 
@@ -433,7 +433,7 @@ node_t *pars_call_args(token_t *tkns, int *pos)
         expr = pars_E(tkns, pos);
         if (!expr)
         {
-            kill_tree(args);
+            kill_tree(args, DONT_KILL_STRS);
             return NULL;
         }
         _ADD_B(args, expr);
@@ -443,7 +443,7 @@ node_t *pars_call_args(token_t *tkns, int *pos)
     {
         LOG("[error]>>> syntax error: closing bracket not found <(%p)>\n", tkns);
         printf("[error]>>> syntax error: closing bracket not found\n");
-        kill_tree(args);
+        kill_tree(args, DONT_KILL_STRS);
         return NULL;
     }
     TOK_SHIFT();
@@ -489,7 +489,7 @@ node_t *pars_args(token_t *tkns, int *pos)
     {
         LOG("[error]>>> syntax error: closing bracket not found <(%p)>\n", tkns);
         printf("[error]>>> syntax error: closing bracket not found\n");
-        kill_tree(node);
+        kill_tree(node, DONT_KILL_STRS);
         return NULL;
     }
     LOG("> closing bracket was found\n");
@@ -595,7 +595,7 @@ node_t *pars_number(token_t *tkns, int *pos)
         {
             LOG("[error]>>> closing bracket wasn't found, character is: %#04x <(%p)>\n", tkns[*pos].data.command, tkns);
             printf("[error]>>> closing bracket wasn't found\n");
-            kill_tree(node);                  
+            kill_tree(node, DONT_KILL_STRS); 
             return NULL;
         }
         else
