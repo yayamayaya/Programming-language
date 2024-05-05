@@ -16,7 +16,7 @@
 
 #define _ADD_B(arg1, arg2)\
     do {if (add_branch(arg1, arg2) == NODE_MEM_ALC_ERR)\
-        return NULL;} while(0)
+        return 0;} while(0)
 
 #define L 0
 #define R 1
