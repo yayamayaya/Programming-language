@@ -1,6 +1,7 @@
 #include "../../general/graph_creator/create_graph.h"
 #include "include/read_tree.h"
 #include "include/bin_2_n.h"
+#include "include/translator.h"
 
 _INIT_LOG();
 
@@ -29,6 +30,20 @@ int main(int argc, char const *argv[])
     
     LOG("> creating graph\n");
     error = create_gparh_code(root);
+    if (error)
+    {
+        LOG("[error]>>> error in graphcode creation\n");
+        kill_tree(root);
+        _CLOSE_LOG();
+        return error;
+    }
+    
+    error = calc_consts(root);
+    if (error)
+        LOG("[error]>>> error in constants calculation\n");
+
+    LOG("> starting translation:\n");
+    error = translator(root);
 
     kill_tree(root);
     _CLOSE_LOG();
