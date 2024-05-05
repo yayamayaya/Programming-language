@@ -136,6 +136,28 @@ int make_body_command(FILE* asm_file, memory_work *memory, Stack <variable_t> *v
 
             break;
         }
+
+        case PRINT:
+            LOG("> translating print\n");
+
+            _CHECK_NODE_NUM(1);
+            if (node->branches[0]->data_type != VAR)
+            {
+                LOG("[error]>>> fatal error, print argument is not an variable\n");
+                return FATAL_ERR;
+            }
+
+            error = push_var_in_asm(asm_file, memory->global_vars, vars, node->branches[0]->data.string);
+            if (error)
+            {
+                LOG("[error]>>> variable was not defined in this scope\n");
+                printf(">>> compilation error: variable %s was not defined\n", node->branches[0]->data.string);
+            }
+
+            _PR("out_i\n\n");
+
+            break;
+
         default:
             LOG(">>> undefined compilation operator, yet to define%40s\n", "[error]");
             return FATAL_ERR;

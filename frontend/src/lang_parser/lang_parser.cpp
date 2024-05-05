@@ -74,8 +74,8 @@ code        ::= {func}+$
 func        ::= name {assignment | {args body}}
 args        ::= '('name [, args]')'
 body        ::= '{'STR+'}'
-STR         ::= {cond | ret | ASSIGN} |{"eu," {variable | scan}}
-scan        ::= {"scan" '('name')'}
+STR         ::= {cond | ret | ASSIGN} |{"eu," {variable | std}}
+std         ::= {"scan | print" '('name')'}
 cond        ::= body '('ASSIGN')' {"if" | "while"}
 assignment  ::= ASSIGN "bolad"
 ASSIGN           - стандартный парсер выражений из дифф + лог. операции + вызов функций
@@ -102,7 +102,7 @@ node_t *pars_power(token_t *tkns, int *pos);
 node_t *pars_number(token_t *tkns, int *pos);
 node_t *pars_variable(token_t *tkns, int *pos);
 node_t *pars_assignment(token_t *tkns, int *pos);
-node_t *pars_scan(token_t *tkns, int *pos);
+node_t *pars_std(token_t *tkns, int *pos);
 node_t *pars_name(token_t *tkns, int *pos);
 
 node_t *create_syntax_tree(token_t *tkns)
@@ -229,7 +229,7 @@ node_t *pars_STR(token_t *tkns, int *pos, int *return_flag)
     TOK_SHIFT();
     LOG("> ZAP founded tok shifted\n");
 
-    node = pars_scan(tkns, pos);
+    node = pars_std(tkns, pos);
     if (node)
         return node;
 
@@ -241,14 +241,15 @@ node_t *pars_STR(token_t *tkns, int *pos, int *return_flag)
     return NULL;
 }
 
-node_t *pars_scan(token_t *tkns, int *pos)
+node_t *pars_std(token_t *tkns, int *pos)
 {
-    LOG("> parsing scan\n");
-    if (tkns[*pos].data_type != COMMAND || tkns[*pos].data.command != SCAN)
+    LOG("> parsing scan or print\n");
+    if (tkns[*pos].data_type != COMMAND || (tkns[*pos].data.command != SCAN && tkns[*pos].data.command != PRINT))
     {
-        LOG("> scan wasn't found\n");
+        LOG("> scan or print wasn't found\n");
         return NULL;
     }
+    node_t *node = create_node(tkns[*pos].data.command, OP, 0);
     TOK_SHIFT();
 
     if (tkns[*pos].data_type != OP || tkns[*pos].data.command != OP_BR)
@@ -275,7 +276,8 @@ node_t *pars_scan(token_t *tkns, int *pos)
     TOK_SHIFT();
 
     LOG("> scan parsed, returning branch\n");
-    return create_node(SCAN, OP, 1, arg_name);
+    _ADD_B(node, arg_name);
+    return node;
 }
 
 node_t *pars_body(token_t *tkns, int *pos, int *return_flag)

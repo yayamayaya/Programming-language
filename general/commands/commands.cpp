@@ -62,7 +62,7 @@ command_t commands[COMMANDS_NUMBER] =
     {WHILE, "shenber", 7},
     {RET, "sygeide", 7},
     {PRINT, "korsetsh", 8},
-    {SCAN, "scan", 4},
+    {SCAN, "scanerleu", 9},
 };
     //{INCL, "include", 7},
 #endif
