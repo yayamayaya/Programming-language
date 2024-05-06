@@ -1,5 +1,5 @@
 CC 		= g++
-CFLAGS 	= -Wall -Wextra -g -DDEBUG -DGRAPH
+CFLAGS 	= -Wall -Wextra -g -DDEBUG
 
 c = ../general/commands/commands.h
 g = ../general/graph_creator/create_graph.h
