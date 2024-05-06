@@ -4,9 +4,9 @@ kraba
     eu, e brat
     eu, b brat
 
-    eu, scan pavlodar a kalasy
-    eu, scan pavlodar e kalasy
-    eu, scan pavlodar b kalasy
+    eu, scanerleu pavlodar a kalasy
+    eu, scanerleu pavlodar e kalasy
+    eu, scanerleu pavlodar b kalasy
 
     kraba
         sygeide syzyktyk pavlodar e men b kalasy
@@ -22,25 +22,47 @@ kraba
 
     eu, di dis pavlodar a men e men b kalasy bolad
 
-    sygeide di
+    kraba
+        sygeide 0
+    nakin' pavlodar di < 0 kalasy eitkezinba
+
+    kraba
+        eu, korsetsh pavlodar -1 * pavlodar e / pavlodar 2 * a kalasy kalasy kalasy
+        
+        sygeide 1
+    nakin' pavlodar di loge 0 kalasy eitkezinba
+
+    kraba
+        eu, korsetsh pavlodar pavlodar -1 * e + di ^ 0.5 kalasy / pavlodar 2 * a kalasy kalasy
+        eu, korsetsh pavlodar pavlodar -1 * e - di ^ 0.5 kalasy / pavlodar 2 * a kalasy kalasy
+
+        sygeide 2
+    nakin' pavlodar di > 0 kalasy eitkezinba
+
+    sygeide 4
 nakin'
 
 e_nol pavlodar a men b kalasy
 kraba
     kraba
-        sygeide 0
+        sygeide 3
     nakin' pavlodar b loge 0 kalasy eitkezinba
 
-    sygeide pavlodar -1 * b / a kalasy ^ 0.5
+    kraba
+        sygeide 0
+    nakin' pavlodar pavlodar -1 * b / a kalasy < 0 kalasy eitkezinba
+
+    eu, korsetsh pavlodar pavlodar -1 * b / a kalasy ^ 0.5 kalasy
+    eu, korsetsh pavlodar -1 * pavlodar -1 * b / a kalasy ^ 0.5 kalasy
+    sygeide 2
 nakin'
 
 b_nol pavlodar a men e kalasy
 kraba
-    kraba
-        sygeide 0
-    nakin' pavlodar pavlodar a loge 0 kalasy loge pavlodar e loge 0 kalasy kalasy eitkezinba
+    eu, korsetsh pavlodar 0 kalasy
+    syzyktyk pavlodar a men e kalasy
 
-    sygeide syzyktyk pavlodar a men e kalasy
+    sygeide 2
 nakin'
 
 dis pavlodar a men e men b kalasy
@@ -50,5 +72,14 @@ nakin'
 
 syzyktyk pavlodar e men b kalasy
 kraba
-    sygeide -1 * pavlodar b / e kalasy
+    kraba
+        sygeide 3
+    nakin' pavlodar e loge 0 kalasy eitkezinba
+
+    kraba
+        sygeide 3
+    nakin' pavlodar b loge 0 kalasy eitkezinba
+
+    eu, korsetsh pavlodar -1 * pavlodar b / e kalasy kalasy
+    sygeide 1
 nakin'

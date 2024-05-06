@@ -1,7 +1,7 @@
-Elbasy pavlodar kalasy
+Elbasy pavlodar kalasy 
 kraba
     eu, syn brat
-    eu, scan pavlodar syn kalasy
+    eu, scanerleu pavlodar syn kalasy
 
     eu, bir 1 bolad
     eu, eki 0 bolad
@@ -11,6 +11,8 @@ kraba
         eu, ysh eki + bir bolad
         eu, eki bir bolad
         eu, bir ysh bolad
+
+        eu, local 10 bolad
 
         eu, syn syn - 1 bolad
     nakin' pavlodar syn kalasy shenber
