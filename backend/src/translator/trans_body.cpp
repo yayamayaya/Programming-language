@@ -131,7 +131,7 @@ int make_body_command(FILE* asm_file, memory_work *memory, Stack <variable_t> *v
             if (error)
             {
                 LOG("[error]>>> variable was not defined in this scope\n");
-                printf(">>> compilation error: variable %s was not defined\n", node->branches[0]->data.string);
+                LOG(">>> compilation error: variable %s was not defined\n", node->branches[0]->data.string);
             }
 
             break;
@@ -141,17 +141,12 @@ int make_body_command(FILE* asm_file, memory_work *memory, Stack <variable_t> *v
             LOG("> translating print\n");
 
             _CHECK_NODE_NUM(1);
-            if (node->branches[0]->data_type != VAR)
-            {
-                LOG("[error]>>> fatal error, print argument is not an variable\n");
-                return FATAL_ERR;
-            }
 
-            error = push_var_in_asm(asm_file, memory->global_vars, vars, node->branches[0]->data.string);
+            error = expr_in_asm(asm_file, memory, vars, node->branches[0]);
             if (error)
             {
                 LOG("[error]>>> variable was not defined in this scope\n");
-                printf(">>> compilation error: variable %s was not defined\n", node->branches[0]->data.string);
+                printf(">>> compilation error: variable was not defined\n");
             }
 
             _PR("out_i\n\n");
@@ -208,7 +203,7 @@ void free_local_mem(FILE *asm_file, Stack <variable_t> *vars, int var_num)
     {
         variable_t var_to_del = {};
         vars->stackPop(&var_to_del);
-        _FREE_LCL_MEM(var_to_del.rel_address);
+        //_FREE_LCL_MEM(var_to_del.rel_address);
     }
     
     LOG("> current variables number: %d\n", vars->getStackSize());

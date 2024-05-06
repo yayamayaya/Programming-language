@@ -37,12 +37,17 @@ int expr_in_asm(FILE *asm_file, memory_work *memory, Stack <variable_t> *vars, n
 
     case VAR:
         error = push_var_in_asm(asm_file, memory->global_vars, vars, node->data.string);
+        if (error)
+            printf("[error]>>>variable %s was not defined here\n", node->data.string);
 
         break;
         
     case FUNC:
         LOG("> function call in expression was found\n");
         error = call_func(asm_file, memory, vars, node);
+        if (error)
+            printf("[error]>>>function %s was not defined here\n", node->data.string);
+        
 
         break;
         
@@ -53,12 +58,11 @@ int expr_in_asm(FILE *asm_file, memory_work *memory, Stack <variable_t> *vars, n
         
     default:
         LOG(">>> fatal error: unacceptable data type of the node for the expression%40s\n", "[error]");
-        _CLOSE_LOG();
+        printf("[error]>>> fatal error in expression\n");
         return FATAL_ERR;
 
     }
 
-    _CLOSE_LOG();
     return error;
 }
 

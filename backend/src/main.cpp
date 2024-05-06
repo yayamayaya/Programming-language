@@ -9,7 +9,7 @@ int main(int argc, char const *argv[])
 {
     if (argc != 3 || !argv[argc - 2] || !argv[argc - 1])
     {
-        printf("[error]>>> not enough arguments in programm call\n");
+        LOG("[error]>>> not enough arguments in programm call\n");
         return ERR;
     }
     _CLEAR_LOGS();
@@ -30,14 +30,7 @@ int main(int argc, char const *argv[])
     root = convert_tree(root);
     
     LOG("> creating graph\n");
-    error = create_gparh_code(root);
-    if (error)
-    {
-        LOG("[error]>>> error in graphcode creation\n");
-        kill_tree(root, KILL_STRINGS);
-        _CLOSE_LOG();
-        return error;
-    }
+    _CREATE_GRAPH(root);
     
     error = calc_consts(root);
     if (error)
