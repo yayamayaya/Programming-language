@@ -74,11 +74,12 @@ code        ::= {func}+$
 func        ::= name {assignment | {args body}}
 args        ::= '('name [, args]')'
 body        ::= '{'STR+'}'
-STR         ::= {cond | ret | ASSIGN} |{"eu," {variable | std}}
+STR         ::= {cond | ret | E} | {"eu," {variable | std}}
 std         ::= {"scan | print" '('name')'}
-cond        ::= body '('ASSIGN')' {"if" | "while"}
-assignment  ::= ASSIGN "bolad"
-ASSIGN           - стандартный парсер выражений из дифф + лог. операции + вызов функций
+cond        ::= body '('E')' {"if" | "while"}
+variable    ::= name {"brat" | assignment}
+assignment  ::= E "bolad"
+E           - стандартный парсер выражений из дифф + логические операции + вызов функций
 func_call   ::= "eu, " name call_args
 call_args   ::= '('{ | ASSIGN [, ASSIGN]*')'
 name        ::= [а-я, А-Я]
@@ -261,27 +262,39 @@ node_t *pars_std(token_t *tkns, int *pos)
     }
     TOK_SHIFT();
 
-    node_t *arg_name = pars_name(tkns, pos);
-    if (!arg_name)
+    node_t *arg = NULL;
+    if (node->data.command == SCAN)
     {
-        kill_tree(node, DONT_KILL_STRS);
-        return NULL;
+        arg = pars_name(tkns, pos);
+        if (!arg)
+        {
+            kill_tree(node, DONT_KILL_STRS);
+            return NULL;
+        }
+        arg->data_type = VAR;
     }
-
-    arg_name->data_type = VAR;
+    else
+    {
+        arg = pars_E(tkns, pos);
+        if (!arg)
+        {
+            kill_tree(node, DONT_KILL_STRS);
+            return NULL;
+        }
+    }
 
     if (tkns[*pos].data_type != OP || tkns[*pos].data.command != CL_BR)
     {
         LOG("[error]>>> syntax error: closing bracket wasn't found <(%p)>\n", tkns);
         printf("[error]>>> syntax error: closing bracket wasn't found\n");
         kill_tree(node, DONT_KILL_STRS);
-        kill_tree(arg_name, DONT_KILL_STRS);
+        kill_tree(arg, DONT_KILL_STRS);
         return NULL;
     }
     TOK_SHIFT();
 
     LOG("> scan parsed, returning branch\n");
-    _ADD_B(node, arg_name);
+    _ADD_B(node, arg);
     return node;
 }
 
@@ -399,6 +412,8 @@ node_t *pars_variable(token_t *tkns, int *pos)
     node_t *expr = pars_assignment(tkns, pos);
     if (!expr)
     {
+        LOG("[error]>>> brat wasn't found, syntax error\n");
+        printf("[error]>>> brat wasn't found, syntax error\n");
         kill_tree(name, DONT_KILL_STRS);
         return NULL;
     }
@@ -626,6 +641,7 @@ node_t *pars_number(token_t *tkns, int *pos)
     if (tkns[*pos].data_type == COMMAND && tkns[*pos].data.command == OP_BR)
     {
         TOK_SHIFT();
+        LOG("> op bracket was found\n");
         node = pars_E(tkns, pos);
         
         if (tkns[*pos].data.command != CL_BR)
